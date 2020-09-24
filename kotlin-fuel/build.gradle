@@ -1,0 +1,56 @@
+apply plugin: 'com.android.library'
+apply plugin: 'maven-publish'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+
+repositories {
+    maven { url 'https://maven.fabric.io/public' }
+    google()
+    jcenter()
+}
+
+android {
+    compileSdkVersion 28
+
+    defaultConfig {
+        minSdkVersion 19
+        targetSdkVersion 28
+        versionName version
+        versionCode rootProject.versionCode
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+
+    lintOptions {
+        abortOnError false
+    }
+
+    compileOptions {
+        sourceCompatibility = '1.8'
+        targetCompatibility = '1.8'
+    }
+}
+
+apply from: '../pomdeps.gradle'
+apply from: '../owasp.gradle'
+
+dependencies {
+    api project(':kotlin-common')
+
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation 'androidx.appcompat:appcompat:1.0.2'
+    implementation 'androidx.core:core-ktx:1.0.2'
+
+    implementation 'com.github.kittinunf.fuel:fuel:2.0.1'
+    implementation 'com.github.kittinunf.fuel:fuel-android:2.0.1'
+    implementation 'com.github.kittinunf.fuel:fuel-coroutines:2.0.1'
+    implementation 'com.github.kittinunf.fuel:fuel-json:2.0.1:'
+
+    implementation 'com.google.code.gson:gson:2.8.5'
+}

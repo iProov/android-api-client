@@ -1,0 +1,6 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          package="com.iproov.androidapiclient">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+
+</manifest>

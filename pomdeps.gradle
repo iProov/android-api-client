@@ -1,0 +1,65 @@
+// This plugin abstracts away the maven publishing build
+// Since we are building by convention and other values are project level
+// then no extension was needed to pass values in.
+
+apply plugin: 'maven-publish'
+
+class MavenPublish implements Plugin<Project> {
+
+    @Override
+    void apply(Project project) {
+
+        // Ensure we can use the project inside MavenPublication
+        project.with { myProject ->
+            publishing {
+                publications {
+                    // Build a maven publication
+                    myMaven(MavenPublication) {
+                        artifact("${myProject.buildDir}/outputs/aar/${myProject.name}-release.aar") {
+                            // Ensure code is freshly built
+                            builtBy assemble
+                        }
+                        // Build a pom including all dependencies (from implementation/api declarations)
+                        pom.withXml {
+                            // Iterate dependencies ...
+                            def dependenciesNode = asNode().appendNode('dependencies')
+                            // ... filter out fileTree, which has no/blank group ...
+                            configurations.implementation.allDependencies.findAll {
+                                it.group != null && it.group.length() > 0
+                            }.each {
+                                // Create a pom reference for this dependency
+                                def dependencyNode = dependenciesNode.appendNode('dependency')
+                                dependencyNode.appendNode('groupId', it.group)
+                                dependencyNode.appendNode('artifactId', it.name)
+
+                                // "project" dependencies are also different: they lack versions ("unspecified")
+                                // We know our "project"s are modules with same version as the library being built
+                                dependencyNode.appendNode('version',
+                                        it.version == "unspecified" ? extension.versionName : it.version)
+                            }
+                        }
+                        pom {
+                            licenses {
+                                license {
+                                    name = '3-Clause BSD License'
+                                    url = 'https://opensource.org/licenses/BSD-3-Clause'
+                                }
+                            }
+                        }
+                    }
+                }
+                repositories {
+                    maven {
+                        url = "${myProject.rootProject.deployPath}"
+                    }
+                }
+            }
+        }
+    }
+}
+
+apply plugin: MavenPublish
+
+
+
+
