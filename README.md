@@ -1,4 +1,13 @@
-# iProov Android API Client
+# iProov Android API Client v1.0.2
+
+## 📖 Table of contents
+
+- [Introduction](#-introduction)
+- [Registration](#-registration)
+- [Installation](#-installation)
+- [Supported functionality](#-supported-functionality)
+- [Example](#-example)
+- [Example App](#-example-app)
 
 ## 👋 Introduction
 
@@ -6,11 +15,11 @@ The iProov Android API Client is a simple wrapper for the [iProov REST API v2](h
 
 v5 of the [iProov SDK](https://github.com/iProov/android) removed the built-in functionality to obtain tokens using the SDK. This library therefore provides that missing functionality as a separate library, and also provides additional functionality such as the ability to enrol photos.
 
-## ⚠️ Important security notice
+### ⚠️ Important security notice
 
 The iProov REST API should only ever be called directly from your back-end, however this library is designed to help you with debugging/evaluating the [iProov Android SDK](https://github.com/iProov/android), to get up-and-running quickly with a pure on-device demo.
 
-Use of the Android API Client requires providing it with your API secret. **You should never embed your API secret within a production app**. 
+Use of the Android API Client requires providing it with your API secret. **You should never embed your API secret within a production app**.
 
 ## ✍️ Registration
 
@@ -23,22 +32,20 @@ Choose which of these libraries to use for easy access to the basic iProov API v
 + **kotlinfuel** is built in Kotlin and uses Fuel for network calls
     + Maven: `com.iproov.android-api-client:kotlin-fuel:1.0.0`
     + Limited to SDK 19+
-    + Depends on coroutines
 
 + **kotlinretrofit** is built in Kotlin and uses Retrofit for network calls
     + Maven `com.iproov.android-api-client:kotlin-retrofit:1.0.0`
     + Limited to SDK 9+
-    + Depends on coroutines
 
 + **javaretrofit** is built in Java and uses Retrofit for network calls
     + Maven `com.iproov.android-api-client:java-retrofit:1.0.0`
     + Limited to SDK 9+
-    
-Add to the repositories section to your build.gradle file (example shown is in groovy gradle and for kotlin fuel library):
+
+Add to the repositories section to your build.gradle file (example shown is in groovy gradle and for kotlin retrofit library):
 
 ```gradle
     repositories {
-        maven { url 'https://raw.githubusercontent.com/iProov/android/nextgen/maven/' }
+        maven { url 'https://raw.githubusercontent.com/iProov/android/master/maven/' }
     }
 ```
 
@@ -46,7 +53,16 @@ Add the dependencies section to your app build.gradle file:
 
 ```gradle
     dependencies {
-        implementation 'com.iproov.android-api-client:kotlin-fuel:1.0.0'
+        implementation 'com.iproov.android-api-client:kotlin-retrofit:1.0.0'
+    }
+```
+
+When using any of the Kotlin versions, you will also need to add the coroutines dependencies to your app build.gradle file:
+
+```gradle
+    dependencies {
+        implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.0'
+        implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.0'
     }
 ```
 
@@ -65,194 +81,51 @@ Example of using iProov API Client (in this case Kotlin and Java Retrofit respec
 
 ##### Kotlin
 ```kotlin
-class KotlinActivity : AppCompatActivity() {
+private val uiSupervisorJob = SupervisorJob()
+private val uiScope = CoroutineScope(Dispatchers.Main + uiSupervisorJob)
 
-    companion object {
-        private const val TAG = "KotlinActivity"
-    }
+val apiClient = ApiClientRetrofit(
+    context = this,
+    baseUrl = "https://eu.rp.secure.iproov.me/api/v2/",
+    logLevel = HttpLoggingInterceptor.Level.BODY,
+    apiKey = "{{ your API key }}",
+    secret = "{{ your API secret }}"
+)
 
-    private lateinit var connection: IProov.IProovConnection
-    private lateinit var clientId: String
-    private lateinit var secret: String
-    private lateinit var userId: String
-
-    private val uiSupervisorJob = SupervisorJob()
-    private val uiScope = CoroutineScope(Dispatchers.Main + uiSupervisorJob)
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        setContentView(R.layout.activity_kotlin)
-        setSupportActionBar(toolbar)
-
-        connection = IProov.getIProovConnection(this)
-
-        buttonStart.setOnClickListener { getToken(userId) }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        connection.stop()
-        uiScope.coroutineContext.cancelChildren()
-    }
-
-    private fun report(message: String) {
-        Log.i(TAG, "Report: $message")
-    }
-
-    private fun getToken(userId: String) {
-        report("Start Kotlin Retrofit")
-
-        val apiClient = ApiClientRetrofit(
-            context = this,
-            baseUrl = "https://eu.rp.secure.iproov.me/api/v2/",
-            logLevel = HttpLoggingInterceptor.Level.BODY,
-            apiKey = clientId,
-            secret = secret
-        )
-
-        uiScope.launch {
-            try {
-                val token = withContext(Dispatchers.IO) { 
-                    apiClient.getToken(ClaimType.VERIFY, userId)
-                }
-                report("getToken success = $token")
-                startIProov(token.token)
-            } catch (httpEx: HttpException) {
-                httpEx.printStackTrace()
-                report("getToken failure $httpEx")
-            }
+uiScope.launch {
+    try {
+        val token = withContext(Dispatchers.IO) {
+            apiClient.getToken(ClaimType.VERIFY, userId).token
         }
-    }
+        // Pass the token to the iProov SDK
 
-    private fun startIProov(tokenValue: String) {
-        val options = IProov.Options()
-        options.apply {
-            capture.maxRoll = 0.05f
-            capture.maxYaw = 0.05f
-        }
+    } catch (httpEx: HttpException) {
+        // Handle exception
 
-        connection.launch(options, tokenValue, object : IProov.IProovCaptureListener {
-            override fun onSuccess(token: String) {
-                report("Successfully iProoved. Token: $token")
-                finish()
-            }
-
-            override fun onFailure(reason: String?, feedback: String?) {
-                report("Failed to iProov. Reason: $reason feedback: $feedback")
-                finish()
-            }
-
-            override fun onProgressUpdate(message: String, progress: Double) {
-                report("Progress ${(progress * 100).toInt()}: $message")
-            }
-
-            override fun onCancelled() {
-                report("Cancelled")
-                finish()
-            }
-
-            override fun onError(e: IProovException) {
-                report("Error: ${e.localizedMessage}")
-                finish()
-            }
-        })
     }
 }
 ```
 ##### Java
 ```java
-public class JavaActivity extends AppCompatActivity {
+ApiClientJavaRetrofit apiClient = new ApiClientJavaRetrofit(
+        this,
+        "https://eu.rp.secure.iproov.me/api/v2/",
+        HttpLoggingInterceptor.Level.BODY,
+        "{{ your API key }}",
+        "{{ your API secret }}");
 
-    private static final String TAG = "JavaActivity";
+apiClient.getToken(
+        ClaimType.VERIFY,
+        userID,
+        (call, response) -> {
+            String token = response.body().getToken();
+            // Pass the token to the iProov SDK
 
-    private IProov.IProovConnection connection = IProov.getIProovConnection(this);
-    private String clientId = "";
-    private String secret = "";
-    private String userId = "";
+        },
+        throwable -> {
+          // Handle exception
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        setContentView(R.layout.activity_java);
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-
-        connection = IProov.getIProovConnection(this);
-
-        findViewById(R.id.buttonStart).setOnClickListener(view -> getTokenAndStartIProov(userId));
-    }
-
-    @Override
-    protected void  onDestroy() {
-        super.onDestroy();
-        connection.stop();
-    }
-
-    private void report(String message) {
-        Log.i(TAG, "Report: " + message);
-    }
-
-    private void getTokenAndStartIProov(String userID) {
-
-        ApiClientJavaRetrofit apiClient = new ApiClientJavaRetrofit(
-                this,
-                "https://eu.rp.secure.iproov.me/api/v2/",
-                HttpLoggingInterceptor.Level.BODY,
-                clientId,
-                secret);
-
-        apiClient.getToken(
-                ClaimType.VERIFY,
-                userID,
-                (call, response) -> {
-                    report("getToken success = $token");
-                    startIproovForVerifyClaim(response.body().getToken());
-                },
-                throwable -> {
-                    report("Failed to get token.");
-                });
-    }
-
-    private void startIproovForVerifyClaim(final String token) {
-        IProov.Options options = new IProov.Options()
-            .capture.setMaxRoll(0.05f)
-            .capture.setMaxYaw(0.05f);
-
-        connection.launch(options, token, new IProov.IProovCaptureListener() {
-
-            @Override
-            public void onSuccess(String token) {
-                report(String.format("Successfully iProoved. Token: %s", token));
-                finish();
-            }
-
-            @Override
-            public void onFailure(String reason, String feedback) {
-                report(String.format("Failed to iProov. Reason: %s feedback: %s", reason, feedback));
-                finish();
-            }
-
-            @Override
-            public void onProgressUpdate(String message, double progress) {
-                report(String.format("Progress %d: %s", (int)(progress * 100), message));
-            }
-
-            @Override
-            public void onCancelled() {
-                report("Cancelled");
-                finish();
-            }
-
-            @Override
-            public void onError(IProovException e) {
-                report(String.format("Error: %s", e));
-                finish();
-            }
         });
-    }
-}
 ```
 ## 🚀 Example App
 
