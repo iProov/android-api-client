@@ -1,4 +1,4 @@
 <resources>
-    <string name="app_name">APIClient harness</string>
+    <string name="app_name">iProov API Demo</string>
     <string name="title_activity_main">MainActivity</string>
 </resources>

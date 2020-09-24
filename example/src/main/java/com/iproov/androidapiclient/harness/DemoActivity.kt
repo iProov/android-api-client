@@ -5,32 +5,49 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import com.iproov.androidapiclient.*
+import com.iproov.androidapiclient.javaretrofit.ApiClientJavaRetrofit
+import com.iproov.androidapiclient.javaretrofit.Token
 import com.iproov.androidapiclient.kotlinfuel.ApiClientFuel
 import com.iproov.androidapiclient.kotlinfuel.enrolPhotoAndGetVerifyToken
 import com.iproov.androidapiclient.kotlinretrofit.*
+import kotlinx.android.synthetic.main.content_main.*
 import kotlinx.coroutines.*
-import okhttp3.Dispatcher
 import org.json.JSONObject
+import retrofit2.Call
 import retrofit2.HttpException
+import retrofit2.Response
 
 class DemoActivity : AppCompatActivity() {
 
-    private val viewModelJob = SupervisorJob()
-    private val uiScope = CoroutineScope(Dispatchers.Main + viewModelJob)
+    private val uiSupervisorJob = SupervisorJob()
+    private val uiScope = CoroutineScope(Dispatchers.Main + uiSupervisorJob)
 
     @DemonstrationPurposesOnly
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_demo)
 
-        demoJavaRetrofitCalls()
+        demoJavaRetrofitCallbacks()
 
-        demoRetrofitApiCalls()
+        demoKotlinRetrofitApiCalls()
 
-        demoFuelApiCalls()
+        demoKotlinFuelApiCalls()
     }
 
-    private fun demoJavaRetrofitCalls() {
+    override fun onDestroy() {
+        super.onDestroy()
+        uiScope.coroutineContext.cancelChildren()
+    }
+
+    private fun report(msg: String) {
+        if (textView.text.isNotEmpty())
+            textView.text = textView.text.toString() + "\n"
+        textView.text = textView.text.toString() + msg
+    }
+
+    private fun demoJavaRetrofitCallbacks() {
+        report("Start Java Retrofit")
+
         val jsonStr = "secrets.json".jsonFile(this)
         val json = JSONObject(jsonStr ?: "{}")
 
@@ -43,19 +60,35 @@ class DemoActivity : AppCompatActivity() {
          */
         val userID = "${"retrofitdemo".datetime()}@example.com"
 
-        DemoJavaRetrofit.enrolPhotoAndGetVerifyToken(
+        val apiClient = ApiClientJavaRetrofit(
             this,
-            userID,
-            bitmap,
-            com.iproov.androidapiclient.javaretrofit.PhotoSource.OPTICAL_ID,
             "https://eu.rp.secure.iproov.me/api/v2/",
             okhttp3.logging.HttpLoggingInterceptor.Level.BODY,
             clientid,
             secret
         )
+
+        apiClient.enrolPhotoAndGetVerifyToken(
+            userID,
+            bitmap,
+            com.iproov.androidapiclient.javaretrofit.PhotoSource.OPTICAL_ID,
+            { _: Call<Token>, response: Response<Token> ->
+                Log.i(
+                    "Main",
+                    "success (Java Retrofit) = ${response.body()?.token}"
+                )
+                report("success (Java Retrofit) = ${response.body()?.token}")
+            },
+            {
+                Log.e("Main", "failure (Java Retrofit) $it")
+                report("failure (Java Retrofit) = $it")
+            }
+        )
+
     }
 
-    private fun demoRetrofitApiCalls() {
+    private fun demoKotlinRetrofitApiCalls() {
+        report("Start Kotlin Retrofit")
 
         val jsonStr = "secrets.json".jsonFile(this)
         val json = JSONObject(jsonStr ?: "{}")
@@ -78,21 +111,24 @@ class DemoActivity : AppCompatActivity() {
          */
         val userID = "${"retrofitdemo".datetime()}@example.com"
 
-        uiScope.launch(Dispatchers.IO) {
-
+        uiScope.launch {
             try {
-                val token = apiClient.enrolPhotoAndGetVerifyToken(userID, bitmap, PhotoSource.OPTICAL_ID)
+                val token = withContext(Dispatchers.IO) {
+                    apiClient.enrolPhotoAndGetVerifyToken(userID, bitmap, PhotoSource.OPTICAL_ID)
+                }
                 Log.i("Main", "success (Retrofit) = $token")
-
+                report("success (Retrofit) = $token")
             } catch (httpEx: HttpException) {
-
                 httpEx.printStackTrace()
-                Log.e("Main", "failure $httpEx")
+                Log.e("Main", "failure (Kotlin Retrofit) $httpEx")
+                report("failure (Kotlin Retrofit) $httpEx")
             }
         }
     }
 
-    private fun demoFuelApiCalls() {
+    private fun demoKotlinFuelApiCalls() {
+        report("Start Kotlin Fuel")
+
         val jsonStr = "secrets.json".jsonFile(this)
         val json = JSONObject(jsonStr ?: "{}")
 
@@ -113,16 +149,17 @@ class DemoActivity : AppCompatActivity() {
          */
         val userID = "${"fueldemo".datetime()}@example.com"
 
-        uiScope.launch(Dispatchers.IO) {
+        uiScope.launch {
             try {
-                val token = apiClient.enrolPhotoAndGetVerifyToken(userID, bitmap, PhotoSource.OPTICAL_ID)
-                Log.i("Main", "success (Fuel) = $token")
-
-            } catch (ex: Exception) {
-                withContext(Dispatchers.Main) {
-                    ex.printStackTrace()
-                    Log.w("Main", "get/enrol exception $ex")
+                val token = withContext(Dispatchers.IO) {
+                    apiClient.enrolPhotoAndGetVerifyToken(userID, bitmap, PhotoSource.OPTICAL_ID)
                 }
+                Log.i("Main", "success (Fuel) = $token")
+                report("success (Kotlin Fuel) = $token")
+            } catch (ex: Exception) {
+                ex.printStackTrace()
+                Log.w("Main", "failure (Kotlin Fuel) $ex")
+                report("failure (Kotlin Fuel) $ex")
             }
         }
     }
