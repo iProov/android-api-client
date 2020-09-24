@@ -1,4 +1,4 @@
-# iProov Android API Client v1.0.2
+# iProov Android API Client v1.1.0
 
 ## 📖 Table of contents
 
@@ -30,15 +30,15 @@ You can obtain API credentials by registering on the [iProov Partner Portal](htt
 Choose which of these libraries to use for easy access to the basic iProov API v2.
 
 + **kotlinfuel** is built in Kotlin and uses Fuel for network calls
-    + Maven: `com.iproov.android-api-client:kotlin-fuel:1.0.0`
+    + Maven: `com.iproov.android-api-client:kotlin-fuel:1.1.0`
     + Limited to SDK 19+
 
 + **kotlinretrofit** is built in Kotlin and uses Retrofit for network calls
-    + Maven `com.iproov.android-api-client:kotlin-retrofit:1.0.0`
+    + Maven `com.iproov.android-api-client:kotlin-retrofit:1.1.0`
     + Limited to SDK 9+
 
 + **javaretrofit** is built in Java and uses Retrofit for network calls
-    + Maven `com.iproov.android-api-client:java-retrofit:1.0.0`
+    + Maven `com.iproov.android-api-client:java-retrofit:1.1.0`
     + Limited to SDK 9+
 
 Add to the repositories section to your build.gradle file (example shown is in groovy gradle and for kotlin retrofit library):
@@ -53,7 +53,7 @@ Add the dependencies section to your app build.gradle file:
 
 ```gradle
     dependencies {
-        implementation 'com.iproov.android-api-client:kotlin-retrofit:1.0.0'
+        implementation 'com.iproov.android-api-client:kotlin-retrofit:1.1.0'
     }
 ```
 
@@ -95,7 +95,7 @@ val apiClient = ApiClientRetrofit(
 uiScope.launch {
     try {
         val token = withContext(Dispatchers.IO) {
-            apiClient.getToken(ClaimType.VERIFY, userId).token
+            apiClient.getToken(AssuranceType.GENUINE_PRESENCE, ClaimType.VERIFY, userId).token
         }
         // Pass the token to the iProov SDK
 
@@ -115,6 +115,7 @@ ApiClientJavaRetrofit apiClient = new ApiClientJavaRetrofit(
         "{{ your API secret }}");
 
 apiClient.getToken(
+        ApiClientJavaRetrofit.AssuranceType.GENUINE_PRESENCE,
         ClaimType.VERIFY,
         userID,
         (call, response) -> {

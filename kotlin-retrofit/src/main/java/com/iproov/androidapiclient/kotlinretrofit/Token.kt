@@ -18,7 +18,9 @@ data class TokenRequest(
     @SerializedName("user_id")
     val userId: String,
     @SerializedName("client")
-    val client: String = "android"
+    val client: String = "android",
+    @SerializedName("assurance_type")
+    val assuranceType: String
 )
 
 data class ValidationRequest(

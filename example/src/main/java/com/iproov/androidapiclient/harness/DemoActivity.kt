@@ -51,7 +51,7 @@ class DemoActivity : AppCompatActivity() {
         val jsonStr = "secrets.json".jsonFile(this)
         val json = JSONObject(jsonStr ?: "{}")
 
-        val clientid = json.optString("clientid")
+        val apiKey = json.optString("api_key")
         val secret = json.optString("secret")
         val bitmap = BitmapFactory.decodeResource(resources, R.drawable.richard)
 
@@ -64,7 +64,7 @@ class DemoActivity : AppCompatActivity() {
             this,
             "https://eu.rp.secure.iproov.me/api/v2/",
             okhttp3.logging.HttpLoggingInterceptor.Level.BODY,
-            clientid,
+            apiKey,
             secret
         )
 
@@ -93,14 +93,14 @@ class DemoActivity : AppCompatActivity() {
         val jsonStr = "secrets.json".jsonFile(this)
         val json = JSONObject(jsonStr ?: "{}")
 
-        val clientid: String = json.optString("clientid")
+        val apiKey: String = json.optString("api_key")
         val secret: String = json.optString("secret")
 
         val apiClient = ApiClientRetrofit(
             context = this,
             baseUrl = "https://eu.rp.secure.iproov.me/api/v2/",
             logLevel = okhttp3.logging.HttpLoggingInterceptor.Level.BODY,
-            apiKey = clientid,
+            apiKey = apiKey,
             secret = secret
         )
 
@@ -132,13 +132,13 @@ class DemoActivity : AppCompatActivity() {
         val jsonStr = "secrets.json".jsonFile(this)
         val json = JSONObject(jsonStr ?: "{}")
 
-        val clientid = json.optString("clientid")
+        val apiKey = json.optString("api_key")
         val secret = json.optString("secret")
 
         val apiClient = ApiClientFuel(
             context = this,
             baseUrl = "https://eu.rp.secure.iproov.me/api/v2/",
-            apiKey = clientid,
+            apiKey = apiKey,
             secret = secret
         )
 

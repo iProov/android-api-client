@@ -2,6 +2,7 @@ package com.iproov.androidapiclient.kotlinretrofit
 
 import android.content.Context
 import android.graphics.Bitmap
+import com.iproov.androidapiclient.AssuranceType
 import com.iproov.androidapiclient.ClaimType
 import com.iproov.androidapiclient.DemonstrationPurposesOnly
 import com.iproov.androidapiclient.PhotoSource
@@ -52,11 +53,11 @@ class ApiClientRetrofit(
     /**
      * Obtain a token, given a ClaimType and userID
      */
-    suspend fun getToken(type: ClaimType, userID: String): Token =
+    suspend fun getToken(assuranceType: AssuranceType, type: ClaimType, userID: String): Token =
 
         api.getAccessToken(
             type.toString().toLowerCase(),
-            TokenRequest(apiKey, secret, appID, userID)
+            TokenRequest(apiKey, secret, appID, userID, assuranceType = assuranceType.backendName)
         ).await()
 
     /**
@@ -105,9 +106,9 @@ fun String.toMultipartRequestBody(): RequestBody =
 @DemonstrationPurposesOnly
 suspend fun ApiClientRetrofit.enrolPhotoAndGetVerifyToken(userID: String, image: Bitmap, source: PhotoSource): String =
 
-    getToken(ClaimType.ENROL, userID).token.let { token1 ->
+    getToken(AssuranceType.GENUINE_PRESENCE, ClaimType.ENROL, userID).token.let { token1 ->
         enrolPhoto(token1, image, source).let {
-            getToken(ClaimType.VERIFY, userID).token
+            getToken(AssuranceType.GENUINE_PRESENCE, ClaimType.VERIFY, userID).token
         }
     }
 

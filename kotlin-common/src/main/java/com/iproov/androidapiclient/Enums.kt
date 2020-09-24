@@ -9,3 +9,8 @@ enum class PhotoSource(val code: String) {
     OPTICAL_ID("oid")
 }
 
+enum class AssuranceType(val backendName: String) {
+    GENUINE_PRESENCE("genuine_presence"),
+    LIVENESS("liveness");
+}
+

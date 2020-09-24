@@ -2,6 +2,8 @@ package com.iproov.androidapiclient.javaretrofit;
 
 import com.google.gson.annotations.SerializedName;
 
+import static com.iproov.androidapiclient.javaretrofit.ApiClientJavaRetrofit.*;
+
 public class TokenRequest {
 
     @SerializedName("api_key")
@@ -14,13 +16,16 @@ public class TokenRequest {
     private String userId;
     @SerializedName("client")
     private String client = "android";
+    @SerializedName("assurance_type")
+    private String assuranceType;
 
-    public TokenRequest(String apiKey, String secret, String resource, String userId, String client) {
+    public TokenRequest(String apiKey, String secret, String resource, String userId, String client, AssuranceType assuranceType) {
         this.apiKey = apiKey;
         this.secret = secret;
         this.resource = resource;
         this.userId = userId;
         this.client = client;
+        this.assuranceType = assuranceType.backendName;
     }
 
     public String getApiKey() {
@@ -62,4 +67,8 @@ public class TokenRequest {
     public void setClient(String client) {
         this.client = client;
     }
+
+    public String getAssuranceType() { return assuranceType; }
+
+    public void setAssuranceType(String assuranceType) { this.assuranceType = assuranceType; }
 }

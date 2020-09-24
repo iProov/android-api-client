@@ -3,6 +3,9 @@ package com.iproov.androidapiclient.javaretrofit;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+
+import java.io.ByteArrayOutputStream;
+
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
@@ -13,9 +16,6 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
-
-import java.io.ByteArrayOutputStream;
-import java.io.OutputStream;
 
 @DemonstrationPurposeOnly
 public class ApiClientJavaRetrofit {
@@ -28,11 +28,11 @@ public class ApiClientJavaRetrofit {
     private ApiJavaService apiJavaService;
 
     public ApiClientJavaRetrofit(
-        Context context,
-        String baseUrl,
-        HttpLoggingInterceptor.Level logLevel,
-        String apiKey,
-        String secret
+            Context context,
+            String baseUrl,
+            HttpLoggingInterceptor.Level logLevel,
+            String apiKey,
+            String secret
     ) {
 
         this.apiKey = apiKey;
@@ -44,12 +44,12 @@ public class ApiClientJavaRetrofit {
                 .baseUrl(baseUrl)
                 .addConverterFactory(GsonConverterFactory.create())
                 .client(
-                    new OkHttpClient.Builder()
-                        .addInterceptor(
-                            new HttpLoggingInterceptor()
-                                .setLevel(logLevel == null ? HttpLoggingInterceptor.Level.BASIC : logLevel)
-                        )
-                        .build())
+                        new OkHttpClient.Builder()
+                                .addInterceptor(
+                                        new HttpLoggingInterceptor()
+                                                .setLevel(logLevel == null ? HttpLoggingInterceptor.Level.BASIC : logLevel)
+                                )
+                                .build())
                 .build()
                 .create(ApiJavaService.class);
     }
@@ -59,6 +59,7 @@ public class ApiClientJavaRetrofit {
     }
 
     private Call<Token> doGetToken(
+            AssuranceType assuranceType,
             ClaimType claimType,
             String userID
     ) {
@@ -70,7 +71,9 @@ public class ApiClientJavaRetrofit {
                         this.secret,
                         this.appID,
                         userID,
-                    "android"
+                        "android",
+                        assuranceType
+
                 )
         );
     }
@@ -86,17 +89,28 @@ public class ApiClientJavaRetrofit {
             String userID,
             Callback<Token> callback
     ) {
-        doGetToken(claimType, userID).enqueue(callback);
+        doGetToken(AssuranceType.GENUINE_PRESENCE, claimType, userID).enqueue(callback);
+    }
+
+
+    public void getToken(
+            AssuranceType assuranceType,
+            ClaimType claimType,
+            String userID,
+            Callback<Token> callback
+    ) {
+        doGetToken(assuranceType, claimType, userID).enqueue(callback);
     }
 
     public void getToken(
+            AssuranceType assuranceType,
             ClaimType claimType,
             String userID,
             final CallbackResponse<Token> callbackResponse,
             final CallbackFailure callbackFailure
     ) {
 
-        doGetToken(claimType, userID).enqueue(new Callback<Token>() {
+        doGetToken(assuranceType, claimType, userID).enqueue(new Callback<Token>() {
             @Override
             public void onResponse(Call<Token> call, Response<Token> response) {
                 callbackResponse.onResponse(call, response);
@@ -183,10 +197,10 @@ public class ApiClientJavaRetrofit {
     }
 
     public void validate(
-        String token,
-        String userID,
-        final CallbackResponse<ValidationResult> callbackResponse,
-        final CallbackFailure callbackFailure
+            String token,
+            String userID,
+            final CallbackResponse<ValidationResult> callbackResponse,
+            final CallbackFailure callbackFailure
     ) {
 
         doValidate(token, userID, new Callback<ValidationResult>() {
@@ -211,30 +225,43 @@ public class ApiClientJavaRetrofit {
     ) {
         try {
             getToken(
-                ClaimType.ENROL,
-                userID,
-                (Call<Token> call, Response<Token> response) -> {
-                    if (response.body() != null)
-                        enrolPhoto(
-                            response.body().getToken(),
-                            image,
-                            source,
-                            (Call<Token> call2, Response<Token> response2) ->
-                                getToken(
-                                    ClaimType.VERIFY,
-                                    userID,
-                                    callbackResponse,
+                    AssuranceType.GENUINE_PRESENCE,
+                    ClaimType.ENROL,
+                    userID,
+                    (Call<Token> call, Response<Token> response) -> {
+                        if (response.body() != null)
+                            enrolPhoto(
+                                    response.body().getToken(),
+                                    image,
+                                    source,
+                                    (Call<Token> call2, Response<Token> response2) ->
+                                            getToken(
+                                                    AssuranceType.GENUINE_PRESENCE,
+                                                    ClaimType.VERIFY,
+                                                    userID,
+                                                    callbackResponse,
+                                                    callbackFailure
+                                            ),
                                     callbackFailure
-                                ),
-                            callbackFailure
-                        );
-                    else
-                        callbackFailure.onFailure(new NullPointerException());
-                },
-                callbackFailure
+                            );
+                        else
+                            callbackFailure.onFailure(new NullPointerException());
+                    },
+                    callbackFailure
             );
         } catch (Exception ex) {
             callbackFailure.onFailure(ex);
+        }
+    }
+
+    public enum AssuranceType {
+        GENUINE_PRESENCE("genuine_presence"),
+        LIVENESS("liveness");
+
+        public final String backendName;
+
+        AssuranceType(String backendName) {
+            this.backendName = backendName;
         }
     }
 }

@@ -10,6 +10,7 @@ import com.github.kittinunf.fuel.json.jsonDeserializer
 import com.github.kittinunf.result.Result
 import org.json.JSONObject
 import com.google.gson.Gson
+import com.iproov.androidapiclient.AssuranceType
 import com.iproov.androidapiclient.ClaimType
 import com.iproov.androidapiclient.DemonstrationPurposesOnly
 import com.iproov.androidapiclient.PhotoSource
@@ -44,7 +45,7 @@ class ApiClientFuel(
     /**
      * Obtain a token, given a ClaimType and userID
      */
-    suspend fun getToken(type: ClaimType, userID: String): String =
+    suspend fun getToken(assuranceType: AssuranceType, type: ClaimType, userID: String): String =
 
         fuelInstance
             .post("${baseUrl.endingWithSlash}claim/${type.toString().toLowerCase()}/token")
@@ -54,7 +55,8 @@ class ApiClientFuel(
                 "secret" to secret,
                 "resource" to appID,
                 "client" to "android",
-                "user_id" to userID
+                "user_id" to userID,
+                "assurance_type" to assuranceType.backendName
             )))
             .awaitObjectResult(jsonDeserializer())
             .let { response ->
@@ -124,9 +126,9 @@ class ApiClientFuel(
 @DemonstrationPurposesOnly
 suspend fun ApiClientFuel.enrolPhotoAndGetVerifyToken(userID: String, image: Bitmap, source: PhotoSource): String =
 
-    getToken(ClaimType.ENROL, userID).let { token1 ->
+    getToken(AssuranceType.GENUINE_PRESENCE, ClaimType.ENROL, userID).let { token1 ->
         enrolPhoto(token1, image, source).let {
-            getToken(ClaimType.VERIFY, userID)
+            getToken(AssuranceType.GENUINE_PRESENCE, ClaimType.VERIFY, userID)
         }
     }
 
