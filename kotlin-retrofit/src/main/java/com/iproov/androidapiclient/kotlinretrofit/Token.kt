@@ -20,7 +20,9 @@ data class TokenRequest(
     @SerializedName("client")
     val client: String = "android",
     @SerializedName("assurance_type")
-    val assuranceType: String
+    val assuranceType: String,
+
+    val options: Map<String, Any>? = null
 )
 
 data class ValidationRequest(

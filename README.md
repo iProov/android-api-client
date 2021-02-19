@@ -1,44 +1,44 @@
-# iProov Android API Client v1.1.0
+# iProov Android API Client v1.3.0
 
 ## 📖 Table of contents
 
-- [Introduction](#-introduction)
-- [Registration](#-registration)
-- [Installation](#-installation)
-- [Supported functionality](#-supported-functionality)
-- [Example](#-example)
-- [Example App](#-example-app)
+- [Introduction](#introduction)
+- [Registration](#registration)
+- [Installation](#installation)
+- [Supported functionality](#supported-functionality)
+- [Example](#example)
+- [Example App](#example-app)
 
-## 👋 Introduction
+## Introduction
 
-The iProov Android API Client is a simple wrapper for the [iProov REST API v2](https://secure.iproov.me/docs.html) written using [Retrofit](https://square.github.io/retrofit/) in both Java and Kotlin and [Fuel]() in Kotlin for the HTTP networking and JSON serialization/deserialization using [Gson](https://github.com/google/gson). This thus provides three libraries to choose from, to suit technologies you are used to. We also have an iOS Swift API client available [here](https://github.com/iProov/ios-api-client).
+The iProov Android API Client is a simple wrapper for the [iProov REST API v2](https://secure.iproov.me/docs.html) written using [Retrofit](https://square.github.io/retrofit/) in both Java and Kotlin and [Fuel](https://github.com/kittinunf/fuel) in Kotlin for the HTTP networking and JSON serialization/deserialization using [Gson](https://github.com/google/gson). This thus provides three libraries to choose from, to suit technologies you are used to. We also have an iOS Swift API client available [here](https://github.com/iProov/ios-api-client).
 
 v5 of the [iProov SDK](https://github.com/iProov/android) removed the built-in functionality to obtain tokens using the SDK. This library therefore provides that missing functionality as a separate library, and also provides additional functionality such as the ability to enrol photos.
 
-### ⚠️ Important security notice
+### Important security notice
 
 The iProov REST API should only ever be called directly from your back-end, however this library is designed to help you with debugging/evaluating the [iProov Android SDK](https://github.com/iProov/android), to get up-and-running quickly with a pure on-device demo.
 
 Use of the Android API Client requires providing it with your API secret. **You should never embed your API secret within a production app**.
 
-## ✍️ Registration
+## Registration
 
-You can obtain API credentials by registering on the [iProov Partner Portal](https://www.iproov.net).
+You can obtain API credentials by registering on the [iProov Portal](https://portal.iproov.com/).
 
-## 📲 Installation
+## Installation
 
 Choose which of these libraries to use for easy access to the basic iProov API v2.
 
 + **kotlinfuel** is built in Kotlin and uses Fuel for network calls
-    + Maven: `com.iproov.android-api-client:kotlin-fuel:1.1.0`
+    + Maven: `com.iproov.android-api-client:kotlin-fuel:1.3.0`
     + Limited to SDK 19+
 
 + **kotlinretrofit** is built in Kotlin and uses Retrofit for network calls
-    + Maven `com.iproov.android-api-client:kotlin-retrofit:1.1.0`
+    + Maven `com.iproov.android-api-client:kotlin-retrofit:1.3.0`
     + Limited to SDK 9+
 
 + **javaretrofit** is built in Java and uses Retrofit for network calls
-    + Maven `com.iproov.android-api-client:java-retrofit:1.1.0`
+    + Maven `com.iproov.android-api-client:java-retrofit:1.3.0`
     + Limited to SDK 9+
 
 Add to the repositories section to your build.gradle file (example shown is in groovy gradle and for kotlin retrofit library):
@@ -53,11 +53,11 @@ Add the dependencies section to your app build.gradle file:
 
 ```gradle
     dependencies {
-        implementation 'com.iproov.android-api-client:kotlin-retrofit:1.1.0'
+        implementation 'com.iproov.android-api-client:kotlin-retrofit:1.3.0'
     }
 ```
 
-When using any of the Kotlin versions, you will also need to add the coroutines dependencies to your app build.gradle file:
+When using any of the Kotlin versions, you will also need to add the coroutines dependencies to your app build.gradle file. These or newer:
 
 ```gradle
     dependencies {
@@ -66,7 +66,7 @@ When using any of the Kotlin versions, you will also need to add the coroutines 
     }
 ```
 
-## 🛠 Supported functionality
+## Supported functionality
 
 All three libraries offer the same functionality:
 
@@ -75,7 +75,7 @@ All three libraries offer the same functionality:
 - **`validate()`** - Validates an existing token.
 - **`enrolPhotoAndGetVerifyToken()`** - A helper function which chains together `getToken()` for the enrolment token, `enrolPhoto()` to enrol the photo, and then `getToken()` for the verify token, which you can then use to launch the SDK.
 
-## 🤳 Example
+## Example
 
 Example of using iProov API Client (in this case Kotlin and Java Retrofit respectively) together with iProov to get a verify token for an existing user and then launch the iProov SDK to perform the verification:
 
@@ -89,8 +89,7 @@ val apiClient = ApiClientRetrofit(
     baseUrl = "https://eu.rp.secure.iproov.me/api/v2/",
     logLevel = HttpLoggingInterceptor.Level.BODY,
     apiKey = "{{ your API key }}",
-    secret = "{{ your API secret }}"
-)
+    secret = "{{ your API secret }}")
 
 uiScope.launch {
     try {
@@ -126,9 +125,10 @@ apiClient.getToken(
         throwable -> {
           // Handle exception
 
-        });
+        },
+        null);
 ```
-## 🚀 Example App
+## Example App
 
 The Example App included, written in Kotlin with Coroutines, demonstrates the use of all three libraries, with simple text output to both screen and logs.
 

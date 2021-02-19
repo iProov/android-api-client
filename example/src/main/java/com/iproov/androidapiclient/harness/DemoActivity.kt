@@ -82,7 +82,8 @@ class DemoActivity : AppCompatActivity() {
             {
                 Log.e("Main", "failure (Java Retrofit) $it")
                 report("failure (Java Retrofit) = $it")
-            }
+            },
+            null
         )
 
     }

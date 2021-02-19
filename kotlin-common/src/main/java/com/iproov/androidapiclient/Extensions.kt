@@ -31,4 +31,11 @@ fun String.jsonFile(context: Context): String? =
         null
     }
 
+ fun <K: Any, V: Any> Map<K, V>.merge(to: Map<K, V>?) = run {
+    val result = mutableMapOf<K, V>()
+    this.forEach{ result[it.key] = it.value }
+    to?.forEach{ result[it.key] = it.value }
+    result
+}
+
 

@@ -8,12 +8,12 @@ repositories {
 }
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 29
 
 
     defaultConfig {
         minSdkVersion 16
-        targetSdkVersion 28
+        targetSdkVersion 29
         versionName version
         versionCode rootProject.versionCode
     }
@@ -40,10 +40,12 @@ apply from: '../owasp.gradle'
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    implementation 'androidx.appcompat:appcompat:1.1.0'
+    implementation 'androidx.appcompat:appcompat:1.2.0'
 
     api "com.squareup.retrofit2:retrofit:2.5.0"
-    api 'com.squareup.okhttp3:logging-interceptor:3.13.1'
+    // Don't upgrade as this will cause gradle resolution strategy to force update okhttp
+    // to a version that does not support Android API 19 (v4.4.x)
+    api 'com.squareup.okhttp3:logging-interceptor:3.12.1'
 
     implementation "com.squareup.retrofit2:converter-gson:2.5.0"
 }

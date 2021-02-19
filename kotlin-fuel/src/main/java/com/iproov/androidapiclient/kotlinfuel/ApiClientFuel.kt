@@ -14,6 +14,7 @@ import com.iproov.androidapiclient.AssuranceType
 import com.iproov.androidapiclient.ClaimType
 import com.iproov.androidapiclient.DemonstrationPurposesOnly
 import com.iproov.androidapiclient.PhotoSource
+import com.iproov.androidapiclient.merge
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
@@ -45,7 +46,7 @@ class ApiClientFuel(
     /**
      * Obtain a token, given a ClaimType and userID
      */
-    suspend fun getToken(assuranceType: AssuranceType, type: ClaimType, userID: String): String =
+    suspend fun getToken(assuranceType: AssuranceType, type: ClaimType, userID: String, options: Map<String, Any>? = null): String =
 
         fuelInstance
             .post("${baseUrl.endingWithSlash}claim/${type.toString().toLowerCase()}/token")
@@ -57,7 +58,7 @@ class ApiClientFuel(
                 "client" to "android",
                 "user_id" to userID,
                 "assurance_type" to assuranceType.backendName
-            )))
+            ).merge(options)))
             .awaitObjectResult(jsonDeserializer())
             .let { response ->
                 when (response) {
@@ -124,12 +125,11 @@ class ApiClientFuel(
  * - Get a verify token for the user ID
  */
 @DemonstrationPurposesOnly
-suspend fun ApiClientFuel.enrolPhotoAndGetVerifyToken(userID: String, image: Bitmap, source: PhotoSource): String =
+suspend fun ApiClientFuel.enrolPhotoAndGetVerifyToken(userID: String, image: Bitmap, source: PhotoSource, options: Map<String, Any>? = null): String =
 
     getToken(AssuranceType.GENUINE_PRESENCE, ClaimType.ENROL, userID).let { token1 ->
-        enrolPhoto(token1, image, source).let {
-            getToken(AssuranceType.GENUINE_PRESENCE, ClaimType.VERIFY, userID)
-        }
+        enrolPhoto(token1, image, source)
+        getToken(AssuranceType.GENUINE_PRESENCE, ClaimType.VERIFY, userID, options)
     }
 
 fun Bitmap.jpegImageStream(): InputStream =

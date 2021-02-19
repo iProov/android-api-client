@@ -4,7 +4,10 @@ package com.iproov.androidapiclient.javaretrofit;
 import android.content.Context;
 import android.graphics.Bitmap;
 
+import com.google.gson.GsonBuilder;
+
 import java.io.ByteArrayOutputStream;
+import java.util.Map;
 
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
@@ -42,7 +45,7 @@ public class ApiClientJavaRetrofit {
 
         this.apiJavaService = new Retrofit.Builder()
                 .baseUrl(baseUrl)
-                .addConverterFactory(GsonConverterFactory.create())
+                .addConverterFactory(gsonConverterFactory())
                 .client(
                         new OkHttpClient.Builder()
                                 .addInterceptor(
@@ -54,6 +57,11 @@ public class ApiClientJavaRetrofit {
                 .create(ApiJavaService.class);
     }
 
+    private static GsonConverterFactory gsonConverterFactory() {
+        GsonBuilder builder = new GsonBuilder().registerTypeAdapter(TokenRequest.class, new TokenRequestSerializer());
+        return GsonConverterFactory.create(builder.create());
+    }
+
     private static RequestBody toRequestBody(String value) {
         return RequestBody.create(MediaType.parse("multipart/form-data"), value);
     }
@@ -61,7 +69,8 @@ public class ApiClientJavaRetrofit {
     private Call<Token> doGetToken(
             AssuranceType assuranceType,
             ClaimType claimType,
-            String userID
+            String userID,
+            Map<String, Object> options
     ) {
 
         return this.apiJavaService.getAccessToken(
@@ -72,8 +81,8 @@ public class ApiClientJavaRetrofit {
                         this.appID,
                         userID,
                         "android",
-                        assuranceType
-
+                        assuranceType,
+                        options
                 )
         );
     }
@@ -87,9 +96,10 @@ public class ApiClientJavaRetrofit {
     public void getToken(
             ClaimType claimType,
             String userID,
-            Callback<Token> callback
+            Callback<Token> callback,
+            Map<String, Object> options
     ) {
-        doGetToken(AssuranceType.GENUINE_PRESENCE, claimType, userID).enqueue(callback);
+        doGetToken(AssuranceType.GENUINE_PRESENCE, claimType, userID, options).enqueue(callback);
     }
 
 
@@ -97,9 +107,10 @@ public class ApiClientJavaRetrofit {
             AssuranceType assuranceType,
             ClaimType claimType,
             String userID,
-            Callback<Token> callback
+            Callback<Token> callback,
+            Map<String, Object> options
     ) {
-        doGetToken(assuranceType, claimType, userID).enqueue(callback);
+        doGetToken(assuranceType, claimType, userID, options).enqueue(callback);
     }
 
     public void getToken(
@@ -107,10 +118,11 @@ public class ApiClientJavaRetrofit {
             ClaimType claimType,
             String userID,
             final CallbackResponse<Token> callbackResponse,
-            final CallbackFailure callbackFailure
+            final CallbackFailure callbackFailure,
+            Map<String, Object> options
     ) {
 
-        doGetToken(assuranceType, claimType, userID).enqueue(new Callback<Token>() {
+        doGetToken(assuranceType, claimType, userID, options).enqueue(new Callback<Token>() {
             @Override
             public void onResponse(Call<Token> call, Response<Token> response) {
                 callbackResponse.onResponse(call, response);
@@ -221,7 +233,8 @@ public class ApiClientJavaRetrofit {
             Bitmap image,
             PhotoSource source,
             final CallbackResponse<Token> callbackResponse,
-            final CallbackFailure callbackFailure
+            final CallbackFailure callbackFailure,
+            Map<String, Object> options
     ) {
         try {
             getToken(
@@ -240,14 +253,16 @@ public class ApiClientJavaRetrofit {
                                                     ClaimType.VERIFY,
                                                     userID,
                                                     callbackResponse,
-                                                    callbackFailure
+                                                    callbackFailure,
+                                                    options
                                             ),
                                     callbackFailure
                             );
                         else
                             callbackFailure.onFailure(new NullPointerException());
                     },
-                    callbackFailure
+                    callbackFailure,
+                    null
             );
         } catch (Exception ex) {
             callbackFailure.onFailure(ex);

@@ -2,6 +2,8 @@ package com.iproov.androidapiclient.kotlinretrofit
 
 import android.content.Context
 import android.graphics.Bitmap
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import com.iproov.androidapiclient.AssuranceType
 import com.iproov.androidapiclient.ClaimType
 import com.iproov.androidapiclient.DemonstrationPurposesOnly
@@ -35,7 +37,7 @@ class ApiClientRetrofit(
     private val api: ApiService by lazy {
         Retrofit.Builder()
             .addCallAdapterFactory(CoroutineCallAdapterFactory())
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(converterFactory())
             .client(
                 OkHttpClient().newBuilder()
                     .addInterceptor(HttpLoggingInterceptor().setLevel(logLevel))
@@ -47,17 +49,25 @@ class ApiClientRetrofit(
             .create(ApiService::class.java)
     }
 
+    private fun converterFactory() : GsonConverterFactory {
+        val gson = GsonBuilder()
+            .registerTypeAdapter(TokenRequest::class.java, TokenRequestSerializer())
+            .create()
+
+        return GsonConverterFactory.create(gson)
+    }
+
     // Transitory access to packageName
     private val appID = context.packageName
 
     /**
      * Obtain a token, given a ClaimType and userID
      */
-    suspend fun getToken(assuranceType: AssuranceType, type: ClaimType, userID: String): Token =
+    suspend fun getToken(assuranceType: AssuranceType, type: ClaimType, userID: String, options: Map<String, Any>? = null): Token =
 
         api.getAccessToken(
             type.toString().toLowerCase(),
-            TokenRequest(apiKey, secret, appID, userID, assuranceType = assuranceType.backendName)
+            TokenRequest(apiKey, secret, appID, userID, assuranceType = assuranceType.backendName, options = options)
         ).await()
 
     /**
@@ -104,11 +114,11 @@ fun String.toMultipartRequestBody(): RequestBody =
  * - Get a verify token for the user ID
  */
 @DemonstrationPurposesOnly
-suspend fun ApiClientRetrofit.enrolPhotoAndGetVerifyToken(userID: String, image: Bitmap, source: PhotoSource): String =
+suspend fun ApiClientRetrofit.enrolPhotoAndGetVerifyToken(userID: String, image: Bitmap, source: PhotoSource, options: Map<String, Any>? = null): String =
 
     getToken(AssuranceType.GENUINE_PRESENCE, ClaimType.ENROL, userID).token.let { token1 ->
         enrolPhoto(token1, image, source).let {
-            getToken(AssuranceType.GENUINE_PRESENCE, ClaimType.VERIFY, userID).token
+            getToken(AssuranceType.GENUINE_PRESENCE, ClaimType.VERIFY, userID, options).token
         }
     }
 
