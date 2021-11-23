@@ -5,11 +5,11 @@ import com.google.gson.annotations.SerializedName;
 
 public class ValidationResult {
     @SerializedName("passed")
-    private Boolean isPassed;
+    public Boolean isPassed;
     @SerializedName("token")
-    private String token;
+    public String token;
     @SerializedName("frame")
-    private Bitmap frame;
+    public Bitmap frame;
     @SerializedName("reason")
-    private String failureReason;
+    public String failureReason;
 }

@@ -1,4 +1,4 @@
-# iProov Android API Client v1.3.0
+# iProov Android API Client v1.4.0
 
 ## 📖 Table of contents
 
@@ -73,6 +73,7 @@ All three libraries offer the same functionality:
 - **`getToken()`** - Get an enrol/verify token.
 - **`enrolPhoto()`** - Once you have an enrolment token, you can enrol a photo against it.
 - **`validate()`** - Validates an existing token.
+- **`invalidate()`** - Invalidates an existing token.
 - **`enrolPhotoAndGetVerifyToken()`** - A helper function which chains together `getToken()` for the enrolment token, `enrolPhoto()` to enrol the photo, and then `getToken()` for the verify token, which you can then use to launch the SDK.
 
 ## Example

@@ -6,6 +6,8 @@ import android.os.Bundle
 import android.util.Log
 import com.iproov.androidapiclient.*
 import com.iproov.androidapiclient.javaretrofit.ApiClientJavaRetrofit
+import com.iproov.androidapiclient.javaretrofit.ClaimType
+import com.iproov.androidapiclient.javaretrofit.InvalidationResult
 import com.iproov.androidapiclient.javaretrofit.Token
 import com.iproov.androidapiclient.kotlinfuel.ApiClientFuel
 import com.iproov.androidapiclient.kotlinfuel.enrolPhotoAndGetVerifyToken
@@ -85,7 +87,6 @@ class DemoActivity : AppCompatActivity() {
             },
             null
         )
-
     }
 
     private fun demoKotlinRetrofitApiCalls() {
@@ -119,6 +120,15 @@ class DemoActivity : AppCompatActivity() {
                 }
                 Log.i("Main", "success (Retrofit) = $token")
                 report("success (Retrofit) = $token")
+
+                val userID2 = "${"retrofitdemo".datetime()}@example.com"
+                val tokenInvalidating = withContext(Dispatchers.IO) {
+                    apiClient.getToken(AssuranceType.GENUINE_PRESENCE, com.iproov.androidapiclient.ClaimType.ENROL, userID2)
+                }
+                val invalidateResult = apiClient.invalidate(tokenInvalidating.token, "Test reason")
+                Log.i("Main", "success (Retrofit, invalidate) = $tokenInvalidating claimAborted=${invalidateResult.claimAborted} userInformed=${invalidateResult.userInformed}")
+                report("success (Retrofit, invalidate) = $tokenInvalidating claimAborted=${invalidateResult.claimAborted} userInformed=${invalidateResult.userInformed}")
+
             } catch (httpEx: HttpException) {
                 httpEx.printStackTrace()
                 Log.e("Main", "failure (Kotlin Retrofit) $httpEx")
@@ -157,6 +167,15 @@ class DemoActivity : AppCompatActivity() {
                 }
                 Log.i("Main", "success (Fuel) = $token")
                 report("success (Kotlin Fuel) = $token")
+
+                val userID2 = "${"fueldemo".datetime()}@example.com"
+                val tokenInvalidating = withContext(Dispatchers.IO) {
+                    apiClient.getToken(AssuranceType.GENUINE_PRESENCE, com.iproov.androidapiclient.ClaimType.ENROL, userID2)
+                }
+                val invalidateResult = apiClient.invalidate(tokenInvalidating, "Test reason")
+                Log.i("Main", "success (Kotlin Fuel, invalidate) = $tokenInvalidating claimAborted=${invalidateResult.claimAborted} userInformed=${invalidateResult.userInformed}")
+                report("success (Kotlin Fuel, invalidate) = $tokenInvalidating claimAborted=${invalidateResult.claimAborted} userInformed=${invalidateResult.userInformed}")
+
             } catch (ex: Exception) {
                 ex.printStackTrace()
                 Log.w("Main", "failure (Kotlin Fuel) $ex")

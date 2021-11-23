@@ -98,6 +98,14 @@ class ApiClientRetrofit(
 
         api.validate(ValidationRequest(apiKey, secret, userID, token, "127.0.0.1", "android")).await()
 
+
+    /**
+     * Invalidate given a token and reason
+     */
+    suspend fun invalidate(token: String, reason: String): InvalidationResult =
+
+        api.invalidate(token, InvalidationRequest(reason)).await()
+
 }
 
 

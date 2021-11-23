@@ -113,6 +113,26 @@ class ApiClientFuel(
                     is Result.Failure -> throw (response.error)
                 }
             }
+
+    /**
+     * Invalidate given a token and reason
+     */
+    suspend fun invalidate(token: String, reason: String): InvalidationResult =
+
+        fuelInstance
+            .post("${baseUrl.endingWithSlash}claim/$token/invalidate")
+            .body(Gson().toJson(mapOf(
+//                "api_key" to apiKey,
+//                "secret" to secret,
+                "reason" to reason
+            )))
+            .awaitObjectResult(jsonDeserializer())
+            .let { response ->
+                when (response) {
+                    is Result.Success -> return response.value.obj().toInvalidationResult()
+                    is Result.Failure -> throw (response.error)
+                }
+            }
 }
 
 
@@ -150,6 +170,16 @@ fun JSONObject.toValidationResult(): ValidationResult =
         this.getString("token"),
         this.getOrNullString("frame")?.base64DecodeBitmap(),
         this.getJSONObject("result").getOrNullString("reason")
+    )
+
+/**
+ * JSON to InvalidationResult mapping
+ */
+fun JSONObject.toInvalidationResult(): InvalidationResult =
+
+    InvalidationResult(
+        this.getBoolean("claim_aborted"),
+        this.getBoolean("user_informed")
     )
 
 private inline val String.endingWithSlash: String

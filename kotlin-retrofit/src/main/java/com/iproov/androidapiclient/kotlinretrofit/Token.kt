@@ -50,3 +50,15 @@ data class ValidationResult(
     @SerializedName("reason")
     val failureReason: String?
 )
+
+data class InvalidationRequest(
+    @SerializedName("reason")
+    val reason: String
+)
+
+data class InvalidationResult(
+    @SerializedName("claim_aborted")
+    val claimAborted: Boolean,
+    @SerializedName("user_informed")
+    val userInformed: Boolean
+)

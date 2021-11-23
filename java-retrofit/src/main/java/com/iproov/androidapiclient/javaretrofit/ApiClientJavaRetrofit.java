@@ -228,6 +228,30 @@ public class ApiClientJavaRetrofit {
         });
     }
 
+    public Call<InvalidationResult> doInvalidate(String token, String reason, Callback<InvalidationResult> callback) {
+        return this.apiJavaService.invalidate(token, new InvalidationRequest(reason));
+    }
+
+    public void invalidate(
+            String token,
+            String reason,
+            final CallbackResponse<InvalidationResult> callbackResponse,
+            final CallbackFailure callbackFailure
+    ) {
+
+        doInvalidate(token, reason, new Callback<InvalidationResult>() {
+            @Override
+            public void onResponse(Call<InvalidationResult> call, Response<InvalidationResult> response) {
+                callbackResponse.onResponse(call, response);
+            }
+
+            @Override
+            public void onFailure(Call<InvalidationResult> call, Throwable t) {
+                callbackFailure.onFailure(t);
+            }
+        });
+    }
+
     public void enrolPhotoAndGetVerifyToken(
             String userID,
             Bitmap image,

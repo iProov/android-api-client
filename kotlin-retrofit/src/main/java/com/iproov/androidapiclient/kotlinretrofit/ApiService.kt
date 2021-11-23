@@ -23,4 +23,7 @@ interface ApiService {
 
     @POST("claim/verify/validate")
     fun validate(@Body validationRequest: ValidationRequest): Deferred<ValidationResult>
+
+    @POST("claim/{token}/invalidate")
+    fun invalidate(@Path("token") token: String, @Body invalidationRequest: InvalidationRequest): Deferred<InvalidationResult>
 }

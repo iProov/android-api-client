@@ -23,4 +23,7 @@ public interface ApiJavaService {
 
     @POST("claim/verify/validate")
     Call<ValidationResult> validate(@Body ValidationRequest validationRequest);
+
+    @POST("claim/{token}/invalidate")
+    Call<InvalidationResult> invalidate(@Path("token") String token, @Body InvalidationRequest invalidationRequest);
 }
