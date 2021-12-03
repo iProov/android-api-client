@@ -163,7 +163,7 @@ class DemoActivity : AppCompatActivity() {
         uiScope.launch {
             try {
                 val token = withContext(Dispatchers.IO) {
-                    apiClient.enrolPhotoAndGetVerifyToken(userID, bitmap, PhotoSource.OPTICAL_ID)
+                    apiClient.enrolPhotoAndGetVerifyToken(userID, bitmap, AssuranceType.GENUINE_PRESENCE, PhotoSource.OPTICAL_ID)
                 }
                 Log.i("Main", "success (Fuel) = $token")
                 report("success (Kotlin Fuel) = $token")

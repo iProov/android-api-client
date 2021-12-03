@@ -149,11 +149,11 @@ class ApiClientFuel(
  * - Get a verify token for the user ID
  */
 @DemonstrationPurposesOnly
-suspend fun ApiClientFuel.enrolPhotoAndGetVerifyToken(userID: String, image: Bitmap, source: PhotoSource, options: Map<String, Any>? = null): String =
+suspend fun ApiClientFuel.enrolPhotoAndGetVerifyToken(userID: String, image: Bitmap, assuranceType: AssuranceType, source: PhotoSource, options: Map<String, Any>? = null): String =
 
-    getToken(AssuranceType.GENUINE_PRESENCE, ClaimType.ENROL, userID).let { token1 ->
+    getToken(assuranceType, ClaimType.ENROL, userID).let { token1 ->
         enrolPhoto(token1, image, source)
-        getToken(AssuranceType.GENUINE_PRESENCE, ClaimType.VERIFY, userID, options)
+        getToken(assuranceType, ClaimType.VERIFY, userID, options)
     }
 
 fun Bitmap.jpegImageStream(): InputStream =
