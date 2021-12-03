@@ -46,6 +46,7 @@ class ApiClientFuel(
     /**
      * Obtain a token, given a ClaimType and userID
      */
+    @Throws(FuelError::class)
     suspend fun getToken(assuranceType: AssuranceType, type: ClaimType, userID: String, options: Map<String, Any>? = null): String =
 
         fuelInstance
@@ -70,6 +71,7 @@ class ApiClientFuel(
     /**
      * Enrol with a Photo, given a token and a PhotoSource
      */
+    @Throws(FuelError::class)
     suspend fun enrolPhoto(token: String, image: Bitmap, source: PhotoSource): String =
 
         fuelInstance
@@ -94,6 +96,7 @@ class ApiClientFuel(
     /**
      * Validate given a token and userID
      */
+    @Throws(FuelError::class)
     suspend fun validate(token: String, userID: String): ValidationResult =
 
         fuelInstance
@@ -117,6 +120,7 @@ class ApiClientFuel(
     /**
      * Invalidate given a token and reason
      */
+    @Throws(FuelError::class)
     suspend fun invalidate(token: String, reason: String): InvalidationResult =
 
         fuelInstance
