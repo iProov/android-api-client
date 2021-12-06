@@ -173,7 +173,7 @@ fun JSONObject.toValidationResult(): ValidationResult =
         this.getBoolean("passed"),
         this.getString("token"),
         this.getOrNullString("frame")?.base64DecodeBitmap(),
-        this.getJSONObject("result").getOrNullString("reason")
+        (this.opt("result") as? JSONObject)?.getOrNullString("reason")
     )
 
 /**
@@ -200,6 +200,9 @@ fun String.base64DecodeBitmap(): Bitmap? =
  * Helper JSON function
  */
 fun JSONObject.getOrNullString(key: String): String? =
-
-    this.getString(key).let { str -> if (str.isEmpty()) null else str }
+    try {
+        this.getString(key).let { str -> if (str.isEmpty()) null else str }
+    } catch (e: java.lang.Exception) {
+        null
+    }
 
