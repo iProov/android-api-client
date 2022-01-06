@@ -203,9 +203,5 @@ fun String.base64DecodeBitmap(): Bitmap? =
  * Helper JSON function
  */
 fun JSONObject.getOrNullString(key: String): String? =
-    try {
-        this.getString(key).let { str -> if (str.isEmpty()) null else str }
-    } catch (e: java.lang.Exception) {
-        null
-    }
+    if (!isNull(key) && has(key)) getString(key) else null
 
