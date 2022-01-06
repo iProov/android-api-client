@@ -75,7 +75,7 @@ class ApiClientFuel(
     suspend fun enrolPhoto(token: String, image: Bitmap, source: PhotoSource): String =
 
         fuelInstance
-            .upload("${baseUrl.endingWithSlash}claim/enrol/image", Method.POST, listOf(
+            .upload("${baseUrl.safelUrl}claim/enrol/image", Method.POST, listOf(
                 "api_key" to apiKey,
                 "secret" to secret,
                 "rotation" to "0",
@@ -100,7 +100,7 @@ class ApiClientFuel(
     suspend fun validate(token: String, userID: String): ValidationResult =
 
         fuelInstance
-            .post("${baseUrl.endingWithSlash}claim/verify/validate")
+            .post("${baseUrl.safelUrl}claim/verify/validate")
             .body(Gson().toJson(mapOf(
                 "api_key" to apiKey,
                 "secret" to secret,
@@ -124,7 +124,7 @@ class ApiClientFuel(
     suspend fun invalidate(token: String, reason: String): InvalidationResult =
 
         fuelInstance
-            .post("${baseUrl.endingWithSlash}claim/$token/invalidate")
+            .post("${baseUrl.safelUrl}claim/$token/invalidate")
             .body(Gson().toJson(mapOf(
 //                "api_key" to apiKey,
 //                "secret" to secret,
@@ -188,6 +188,9 @@ fun JSONObject.toInvalidationResult(): InvalidationResult =
 
 private inline val String.endingWithSlash: String
     get() = if (endsWith("/")) this else "$this/"
+
+private inline val String.safelUrl: String
+    get() = if (endsWith("api/v2/")) endingWithSlash else "${endingWithSlash}api/v2/"
 
 /**
  * Base64 decode to Bitmap mapping
