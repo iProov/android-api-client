@@ -40,16 +40,16 @@ class ApiClientFuel(
     // Transitory access to packageName
     private val appID = context.packageName
 
-    // Own Fuel instance to prevent access token leakage
-    private val fuelInstance = FuelManager()
+    private val fuelInstance: FuelManager = FuelManager()
 
     /**
      * Obtain a token, given a ClaimType and userID
      */
+    @Throws(FuelError::class)
     suspend fun getToken(assuranceType: AssuranceType, type: ClaimType, userID: String, options: Map<String, Any>? = null): String =
 
         fuelInstance
-            .post("${baseUrl.endingWithSlash}claim/${type.toString().toLowerCase()}/token")
+            .post("${baseUrl.safelUrl}claim/${type.toString().toLowerCase()}/token")
             .header("Content-Type" to "application/json")
             .body(Gson().toJson(mapOf(
                 "api_key" to apiKey,
@@ -70,10 +70,11 @@ class ApiClientFuel(
     /**
      * Enrol with a Photo, given a token and a PhotoSource
      */
+    @Throws(FuelError::class)
     suspend fun enrolPhoto(token: String, image: Bitmap, source: PhotoSource): String =
 
         fuelInstance
-            .upload("${baseUrl.endingWithSlash}claim/enrol/image", Method.POST, listOf(
+            .upload("${baseUrl.safelUrl}claim/enrol/image", Method.POST, listOf(
                 "api_key" to apiKey,
                 "secret" to secret,
                 "rotation" to "0",
@@ -94,10 +95,11 @@ class ApiClientFuel(
     /**
      * Validate given a token and userID
      */
+    @Throws(FuelError::class)
     suspend fun validate(token: String, userID: String): ValidationResult =
 
         fuelInstance
-            .post("${baseUrl.endingWithSlash}claim/verify/validate")
+            .post("${baseUrl.safelUrl}claim/verify/validate")
             .body(Gson().toJson(mapOf(
                 "api_key" to apiKey,
                 "secret" to secret,
@@ -117,10 +119,11 @@ class ApiClientFuel(
     /**
      * Invalidate given a token and reason
      */
+    @Throws(FuelError::class)
     suspend fun invalidate(token: String, reason: String): InvalidationResult =
 
         fuelInstance
-            .post("${baseUrl.endingWithSlash}claim/$token/invalidate")
+            .post("${baseUrl.safelUrl}claim/$token/invalidate")
             .body(Gson().toJson(mapOf(
 //                "api_key" to apiKey,
 //                "secret" to secret,
@@ -145,11 +148,11 @@ class ApiClientFuel(
  * - Get a verify token for the user ID
  */
 @DemonstrationPurposesOnly
-suspend fun ApiClientFuel.enrolPhotoAndGetVerifyToken(userID: String, image: Bitmap, source: PhotoSource, options: Map<String, Any>? = null): String =
+suspend fun ApiClientFuel.enrolPhotoAndGetVerifyToken(userID: String, image: Bitmap, assuranceType: AssuranceType, source: PhotoSource, options: Map<String, Any>? = null): String =
 
-    getToken(AssuranceType.GENUINE_PRESENCE, ClaimType.ENROL, userID).let { token1 ->
+    getToken(assuranceType, ClaimType.ENROL, userID).let { token1 ->
         enrolPhoto(token1, image, source)
-        getToken(AssuranceType.GENUINE_PRESENCE, ClaimType.VERIFY, userID, options)
+        getToken(assuranceType, ClaimType.VERIFY, userID, options)
     }
 
 fun Bitmap.jpegImageStream(): InputStream =
@@ -169,7 +172,7 @@ fun JSONObject.toValidationResult(): ValidationResult =
         this.getBoolean("passed"),
         this.getString("token"),
         this.getOrNullString("frame")?.base64DecodeBitmap(),
-        this.getJSONObject("result").getOrNullString("reason")
+        this.optJSONObject("result")?.getOrNullString("reason")
     )
 
 /**
@@ -185,17 +188,22 @@ fun JSONObject.toInvalidationResult(): InvalidationResult =
 private inline val String.endingWithSlash: String
     get() = if (endsWith("/")) this else "$this/"
 
+private inline val String.safelUrl: String
+    get() = if (endingWithSlash.endsWith("api/v2/")) endingWithSlash else "${endingWithSlash}api/v2/"
+
 /**
  * Base64 decode to Bitmap mapping
  */
 fun String.base64DecodeBitmap(): Bitmap? =
-
-    with(Base64.decode(this, Base64.DEFAULT)) { try { BitmapFactory.decodeByteArray(this, 0, this.size) } catch(ex: Exception) { null } }
+    with(Base64.decode(this, Base64.DEFAULT)) {
+        try {
+            BitmapFactory.decodeByteArray(this, 0, this.size)
+        } catch(ex: Exception) { null }
+    }
 
 /**
  * Helper JSON function
  */
 fun JSONObject.getOrNullString(key: String): String? =
-
-    this.getString(key).let { str -> if (str.isEmpty()) null else str }
+    if (!isNull(key) && has(key)) getString(key) else null
 

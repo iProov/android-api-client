@@ -1,4 +1,4 @@
-# iProov Android API Client v1.4.0
+# iProov Android API Client v1.4.1
 
 ## 📖 Table of contents
 
