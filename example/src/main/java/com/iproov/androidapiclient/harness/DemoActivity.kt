@@ -5,19 +5,13 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import com.iproov.androidapiclient.*
-import com.iproov.androidapiclient.javaretrofit.ApiClientJavaRetrofit
-import com.iproov.androidapiclient.javaretrofit.ClaimType
-import com.iproov.androidapiclient.javaretrofit.InvalidationResult
-import com.iproov.androidapiclient.javaretrofit.Token
 import com.iproov.androidapiclient.kotlinfuel.ApiClientFuel
 import com.iproov.androidapiclient.kotlinfuel.enrolPhotoAndGetVerifyToken
 import com.iproov.androidapiclient.kotlinretrofit.*
 import kotlinx.android.synthetic.main.content_main.*
 import kotlinx.coroutines.*
 import org.json.JSONObject
-import retrofit2.Call
 import retrofit2.HttpException
-import retrofit2.Response
 
 class DemoActivity : AppCompatActivity() {
 
@@ -28,8 +22,6 @@ class DemoActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_demo)
-
-        demoJavaRetrofitCallbacks()
 
         demoKotlinRetrofitApiCalls()
 
@@ -45,48 +37,6 @@ class DemoActivity : AppCompatActivity() {
         if (textView.text.isNotEmpty())
             textView.text = textView.text.toString() + "\n"
         textView.text = textView.text.toString() + msg
-    }
-
-    private fun demoJavaRetrofitCallbacks() {
-        report("Start Java Retrofit")
-
-        val jsonStr = "secrets.json".jsonFile(this)
-        val json = JSONObject(jsonStr ?: "{}")
-
-        val apiKey = json.optString("api_key")
-        val secret = json.optString("secret")
-        val bitmap = BitmapFactory.decodeResource(resources, R.drawable.richard)
-
-        /**
-         * NOTE THIS MUST BE DIFFERENT EACH TIME
-         */
-        val userID = "${"retrofitdemo".datetime()}@example.com"
-
-        val apiClient = ApiClientJavaRetrofit(
-            this,
-            "https://eu.rp.secure.iproov.me/api/v2/",
-            okhttp3.logging.HttpLoggingInterceptor.Level.BODY,
-            apiKey,
-            secret
-        )
-
-        apiClient.enrolPhotoAndGetVerifyToken(
-            userID,
-            bitmap,
-            com.iproov.androidapiclient.javaretrofit.PhotoSource.OPTICAL_ID,
-            { _: Call<Token>, response: Response<Token> ->
-                Log.i(
-                    "Main",
-                    "success (Java Retrofit) = ${response.body()?.token}"
-                )
-                report("success (Java Retrofit) = ${response.body()?.token}")
-            },
-            {
-                Log.e("Main", "failure (Java Retrofit) $it")
-                report("failure (Java Retrofit) = $it")
-            },
-            null
-        )
     }
 
     private fun demoKotlinRetrofitApiCalls() {

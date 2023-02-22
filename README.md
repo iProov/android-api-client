@@ -1,4 +1,4 @@
-# iProov Android API Client v1.4.1
+# iProov Android API Client v2.0.0
 
 ## 📖 Table of contents
 
@@ -11,7 +11,7 @@
 
 ## Introduction
 
-The iProov Android API Client is a simple wrapper for the [iProov REST API v2](https://secure.iproov.me/docs.html) written using [Retrofit](https://square.github.io/retrofit/) in both Java and Kotlin and [Fuel](https://github.com/kittinunf/fuel) in Kotlin for the HTTP networking and JSON serialization/deserialization using [Gson](https://github.com/google/gson). This thus provides three libraries to choose from, to suit technologies you are used to. We also have an iOS Swift API client available [here](https://github.com/iProov/ios-api-client).
+The iProov Android API Client is a simple wrapper for the [iProov REST API v2](https://secure.iproov.me/docs.html) written using [Retrofit](https://square.github.io/retrofit/) in Kotlin and [Fuel](https://github.com/kittinunf/fuel) in Kotlin for the HTTP networking and JSON serialization/deserialization using [Gson](https://github.com/google/gson). This thus provides two libraries to choose from, to suit technologies you are used to. We also have an iOS Swift API client available [here](https://github.com/iProov/ios-api-client).
 
 v5 of the [iProov SDK](https://github.com/iProov/android) removed the built-in functionality to obtain tokens using the SDK. This library therefore provides that missing functionality as a separate library, and also provides additional functionality such as the ability to enrol photos.
 
@@ -27,7 +27,7 @@ You can obtain API credentials by registering on the [iProov Portal](https://por
 
 ## Installation
 
-Choose which of these libraries to use for easy access to the basic iProov API v2.
+Choose which of the two libraries to use for easy access to the basic iProov API v2.
 
 + **kotlinfuel** is built in Kotlin and uses Fuel for network calls
     + Maven: `com.iproov.android-api-client:kotlin-fuel:1.3.0`
@@ -35,10 +35,6 @@ Choose which of these libraries to use for easy access to the basic iProov API v
 
 + **kotlinretrofit** is built in Kotlin and uses Retrofit for network calls
     + Maven `com.iproov.android-api-client:kotlin-retrofit:1.3.0`
-    + Limited to SDK 9+
-
-+ **javaretrofit** is built in Java and uses Retrofit for network calls
-    + Maven `com.iproov.android-api-client:java-retrofit:1.3.0`
     + Limited to SDK 9+
 
 Add to the repositories section to your build.gradle file (example shown is in groovy gradle and for kotlin retrofit library):
@@ -68,7 +64,7 @@ When using any of the Kotlin versions, you will also need to add the coroutines 
 
 ## Supported functionality
 
-All three libraries offer the same functionality:
+Both libraries offer the same functionality:
 
 - **`getToken()`** - Get an enrol/verify token.
 - **`enrolPhoto()`** - Once you have an enrolment token, you can enrol a photo against it.
@@ -78,7 +74,7 @@ All three libraries offer the same functionality:
 
 ## Example
 
-Example of using iProov API Client (in this case Kotlin and Java Retrofit respectively) together with iProov to get a verify token for an existing user and then launch the iProov SDK to perform the verification:
+Example of using iProov API Client together with iProov to get a verify token for an existing user and then launch the iProov SDK to perform the verification:
 
 ##### Kotlin
 ```kotlin
@@ -105,33 +101,10 @@ uiScope.launch {
     }
 }
 ```
-##### Java
-```java
-ApiClientJavaRetrofit apiClient = new ApiClientJavaRetrofit(
-        this,
-        "https://eu.rp.secure.iproov.me/api/v2/",
-        HttpLoggingInterceptor.Level.BODY,
-        "{{ your API key }}",
-        "{{ your API secret }}");
 
-apiClient.getToken(
-        ApiClientJavaRetrofit.AssuranceType.GENUINE_PRESENCE,
-        ClaimType.VERIFY,
-        userID,
-        (call, response) -> {
-            String token = response.body().getToken();
-            // Pass the token to the iProov SDK
-
-        },
-        throwable -> {
-          // Handle exception
-
-        },
-        null);
-```
 ## Example App
 
-The Example App included, written in Kotlin with Coroutines, demonstrates the use of all three libraries, with simple text output to both screen and logs.
+The Example App included, written in Kotlin with Coroutines, demonstrates the use with simple text output to both screen and logs.
 
 To run the example you need to include a *secrets.json* file in the
 src/main/assets/ directory that looks like this:

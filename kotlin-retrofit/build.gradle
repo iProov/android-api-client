@@ -10,13 +10,11 @@ repositories {
 }
 
 android {
-    compileSdkVersion 29
+    compileSdkVersion rootProject.compileSdk
 
     defaultConfig {
-        minSdkVersion 16
-        targetSdkVersion 29
-        versionName version
-        versionCode rootProject.versionCode
+        minSdkVersion rootProject.minSdk
+        targetSdkVersion rootProject.targetSdk
     }
 
     buildTypes {
@@ -30,8 +28,14 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = '1.8'
-        targetCompatibility = '1.8'
+        sourceCompatibility = SourceCompatibility
+        targetCompatibility = TargetCompatibility
+    }
+
+    kotlinOptions {
+        jvmTarget = KotlinOptionsJvmTargetVersion
+        languageVersion = KotlinOptionsLangVersion
+        apiVersion = KotlinOptionsApiVersion
     }
 }
 
@@ -43,13 +47,12 @@ dependencies {
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation 'androidx.appcompat:appcompat:1.2.0'
+    implementation KotlinStdLib
+    implementation AndroidXAppCompat
 
-    api "com.squareup.retrofit2:retrofit:2.5.0"
-    implementation "com.squareup.retrofit2:converter-gson:2.5.0"
-    implementation "com.jakewharton.retrofit:retrofit2-kotlin-coroutines-adapter:0.9.2"
+    api Retrofit
+    implementation RetrofitGson
     // Don't upgrade as this will cause gradle resolution strategy to force update okhttp
     // to a version that does not support Android API 19 (v4.4.x)
-    api 'com.squareup.okhttp3:logging-interceptor:3.12.1'
+    api OkhttpLoggingInterceptor
 }
