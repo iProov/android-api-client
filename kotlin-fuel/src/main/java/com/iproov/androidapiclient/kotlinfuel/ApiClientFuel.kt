@@ -46,7 +46,7 @@ class ApiClientFuel(
      * Obtain a token, given a ClaimType and userID
      */
     @Throws(FuelError::class)
-    suspend fun getToken(assuranceType: AssuranceType, type: ClaimType, userID: String, options: Map<String, Any>? = null): String =
+    suspend fun getToken(assuranceType: AssuranceType, type: ClaimType, userID: String, options: Map<String, Any>? = null, resource: String = appID): String =
 
         fuelInstance
             .post("${baseUrl.safelUrl}claim/${type.toString().toLowerCase()}/token")
@@ -54,7 +54,7 @@ class ApiClientFuel(
             .body(Gson().toJson(mapOf(
                 "api_key" to apiKey,
                 "secret" to secret,
-                "resource" to appID,
+                "resource" to resource,
                 "client" to "android",
                 "user_id" to userID,
                 "assurance_type" to assuranceType.backendName

@@ -1,27 +1,35 @@
 // Top-level build file
 
-// This defines the maven group and version for all modules
-// The maven artifactId will come from the modules name by convention
-
-subprojects {
-    group="com.iproov.android-api-client"
-    version = "1.4.1"
-}
-
 buildscript {
-    ext.kotlin_version = '1.4.30'
+    ext {
+        targetSdk = 33
+        compileSdk = 33
+        minSdk = 21
+    }
 
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.1.2'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath 'org.owasp:dependency-check-gradle:6.0.3'
+        classpath GradleTools
+        classpath GradleKotlin
+        classpath GradleOWASP
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
+}
+
+plugins {
+    id 'org.jetbrains.kotlin.android' version '1.5.30' apply false
+}
+
+// This defines the maven group and version for all modules
+// The maven artifactId will come from the modules name by convention
+
+subprojects {
+    group="com.iproov.android-api-client"
+    version = "2.0.0"
 }
 
 allprojects {

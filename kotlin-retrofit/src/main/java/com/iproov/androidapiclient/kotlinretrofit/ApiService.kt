@@ -8,22 +8,22 @@ import retrofit2.http.*
 interface ApiService {
 
     @POST("claim/{claimType}/token")
-    fun getAccessToken(@Path("claimType") claimType: String, @Body tokenRequest: TokenRequest): Deferred<Token>
+    suspend fun getAccessToken(@Path("claimType") claimType: String, @Body tokenRequest: TokenRequest): Token
 
     @Multipart
     @POST("claim/enrol/image")
-    fun enrolPhoto(
+    suspend fun enrolPhoto(
         @Part("api_key") apiKey: RequestBody,
         @Part("secret") secret: RequestBody,
         @Part("rotation") rotation: RequestBody,
         @Part("token") token: RequestBody,
         @Part image: MultipartBody.Part,
         @Part("source") source: RequestBody
-    ): Deferred<Token>
+    ): Token
 
     @POST("claim/verify/validate")
-    fun validate(@Body validationRequest: ValidationRequest): Deferred<ValidationResult>
+    suspend fun validate(@Body validationRequest: ValidationRequest): ValidationResult
 
     @POST("claim/{token}/invalidate")
-    fun invalidate(@Path("token") token: String, @Body invalidationRequest: InvalidationRequest): Deferred<InvalidationResult>
+    suspend fun invalidate(@Path("token") token: String, @Body invalidationRequest: InvalidationRequest): InvalidationResult
 }

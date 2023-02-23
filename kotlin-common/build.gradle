@@ -10,13 +10,11 @@ repositories {
 }
 
 android {
-    compileSdkVersion 29
+    compileSdkVersion rootProject.compileSdk
 
     defaultConfig {
-        minSdkVersion 19
-        targetSdkVersion 29
-        versionName version
-        versionCode rootProject.versionCode
+        minSdkVersion rootProject.minSdk
+        targetSdkVersion rootProject.targetSdk
     }
 
     buildTypes {
@@ -30,8 +28,14 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = '1.8'
-        targetCompatibility = '1.8'
+        sourceCompatibility = SourceCompatibility
+        targetCompatibility = TargetCompatibility
+    }
+
+    kotlinOptions {
+        jvmTarget = KotlinOptionsJvmTargetVersion
+        languageVersion = KotlinOptionsLangVersion
+        apiVersion = KotlinOptionsApiVersion
     }
 }
 
@@ -41,6 +45,6 @@ apply from: '../owasp.gradle'
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation 'androidx.appcompat:appcompat:1.2.0'
+    implementation KotlinStdLib
+    implementation AndroidXAppCompat
 }

@@ -1,1 +1,1 @@
-include ':kotlin-fuel', ':example', ':kotlin-retrofit', ':kotlin-common', ':java-retrofit'
+include ':kotlin-fuel', ':example', ':kotlin-retrofit', ':kotlin-common'

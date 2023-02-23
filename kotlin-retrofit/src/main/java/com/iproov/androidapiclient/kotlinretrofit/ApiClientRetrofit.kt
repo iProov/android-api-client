@@ -2,19 +2,18 @@ package com.iproov.androidapiclient.kotlinretrofit
 
 import android.content.Context
 import android.graphics.Bitmap
-import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.iproov.androidapiclient.AssuranceType
 import com.iproov.androidapiclient.ClaimType
 import com.iproov.androidapiclient.DemonstrationPurposesOnly
 import com.iproov.androidapiclient.PhotoSource
-import com.jakewharton.retrofit2.adapter.kotlin.coroutines.CoroutineCallAdapterFactory
-import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import okhttp3.OkHttpClient
 import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.logging.HttpLoggingInterceptor
 import java.io.ByteArrayOutputStream
 import java.util.concurrent.TimeUnit
@@ -36,7 +35,6 @@ class ApiClientRetrofit(
 
     private val api: ApiService by lazy {
         Retrofit.Builder()
-            .addCallAdapterFactory(CoroutineCallAdapterFactory())
             .addConverterFactory(converterFactory())
             .client(
                 OkHttpClient().newBuilder()
@@ -63,12 +61,12 @@ class ApiClientRetrofit(
     /**
      * Obtain a token, given a ClaimType and userID
      */
-    suspend fun getToken(assuranceType: AssuranceType, type: ClaimType, userID: String, options: Map<String, Any>? = null): Token =
+    suspend fun getToken(assuranceType: AssuranceType, type: ClaimType, userID: String, options: Map<String, Any>? = null, resource: String = appID): Token =
 
         api.getAccessToken(
-            type.toString().toLowerCase(),
-            TokenRequest(apiKey, secret, appID, userID, assuranceType = assuranceType.backendName, options = options)
-        ).await()
+            type.toString().lowercase(),
+            TokenRequest(apiKey, secret, resource, userID, assuranceType = assuranceType.backendName, options = options)
+        )
 
     /**
      * Enrol with a Photo, given a token and a PhotoSource
@@ -84,19 +82,19 @@ class ApiClientRetrofit(
                 "image",
                 "image.jpeg",
                 RequestBody.create(
-                    MediaType.parse("image/jpeg"),
+                    "image/jpeg".toMediaTypeOrNull(),
                     image.jpegImageByteArray()
                 )
             ),
             source.code.toMultipartRequestBody()
-        ).await()
+        )
 
     /**
      * Validate given a token and userID
      */
     suspend fun validate(token: String, userID: String): ValidationResult =
 
-        api.validate(ValidationRequest(apiKey, secret, userID, token, "127.0.0.1", "android")).await()
+        api.validate(ValidationRequest(apiKey, secret, userID, token, "127.0.0.1", "android"))
 
 
     /**
@@ -104,7 +102,7 @@ class ApiClientRetrofit(
      */
     suspend fun invalidate(token: String, reason: String): InvalidationResult =
 
-        api.invalidate(token, InvalidationRequest(reason)).await()
+        api.invalidate(token, InvalidationRequest(reason))
 
 }
 
@@ -113,7 +111,7 @@ class ApiClientRetrofit(
 
 fun String.toMultipartRequestBody(): RequestBody =
 
-    RequestBody.create( MediaType.parse("multipart/form-data"), this)
+    this.toRequestBody("multipart/form-data".toMediaTypeOrNull())
 
 /**
  * Aggregate extension function to getToken and enrolPhoto in one call.
