@@ -49,6 +49,8 @@ dependencies {
 
     implementation KotlinStdLib
     implementation AndroidXAppCompat
+    implementation KotlinXCoroutinesCore
+    implementation KotlinXCoroutinesAndroid
 
     api Retrofit
     implementation RetrofitGson
