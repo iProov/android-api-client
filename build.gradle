@@ -2,8 +2,8 @@
 
 buildscript {
     ext {
-        targetSdk = 33
-        compileSdk = 33
+        targetSdk = 31
+        compileSdk = 31
         minSdk = 21
     }
 
@@ -29,7 +29,7 @@ plugins {
 
 subprojects {
     group="com.iproov.android-api-client"
-    version = "2.0.0"
+    version = "2.0.1"
 }
 
 allprojects {
