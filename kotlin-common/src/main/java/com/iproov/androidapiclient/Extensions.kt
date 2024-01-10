@@ -1,8 +1,6 @@
 package com.iproov.androidapiclient
 
 import android.content.Context
-import android.util.Log
-import java.io.File
 import java.io.IOException
 import java.nio.charset.Charset
 import java.text.SimpleDateFormat
@@ -31,11 +29,15 @@ fun String.jsonFile(context: Context): String? =
         null
     }
 
- fun <K: Any, V: Any> Map<K, V>.merge(to: Map<K, V>?) = run {
+ fun <K: Any, V: Any?> Map<K, V>.merge(to: Map<K, V>?) = run {
     val result = mutableMapOf<K, V>()
     this.forEach{ result[it.key] = it.value }
     to?.forEach{ result[it.key] = it.value }
     result
 }
 
+inline val String.endingWithSlash: String
+    get() = if (endsWith("/")) this else "$this/"
 
+inline val String.saferUrl: String
+    get() = if (endingWithSlash.endsWith("api/v2/")) endingWithSlash else "${endingWithSlash}api/v2/"

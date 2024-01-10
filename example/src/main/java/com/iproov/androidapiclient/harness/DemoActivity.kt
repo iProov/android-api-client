@@ -22,9 +22,7 @@ class DemoActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_demo)
-
         demoKotlinRetrofitApiCalls()
-
         demoKotlinFuelApiCalls()
     }
 
@@ -45,12 +43,13 @@ class DemoActivity : AppCompatActivity() {
         val jsonStr = "secrets.json".jsonFile(this)
         val json = JSONObject(jsonStr ?: "{}")
 
+        val url: String = json.optString("base_url")
         val apiKey: String = json.optString("api_key")
         val secret: String = json.optString("secret")
 
         val apiClient = ApiClientRetrofit(
             context = this,
-            baseUrl = "https://eu.rp.secure.iproov.me/api/v2/",
+            baseUrl = url,
             logLevel = okhttp3.logging.HttpLoggingInterceptor.Level.BODY,
             apiKey = apiKey,
             secret = secret
@@ -93,12 +92,13 @@ class DemoActivity : AppCompatActivity() {
         val jsonStr = "secrets.json".jsonFile(this)
         val json = JSONObject(jsonStr ?: "{}")
 
+        val url: String = json.optString("base_url")
         val apiKey = json.optString("api_key")
         val secret = json.optString("secret")
 
         val apiClient = ApiClientFuel(
             context = this,
-            baseUrl = "https://eu.rp.secure.iproov.me/api/v2/",
+            baseUrl = url,
             apiKey = apiKey,
             secret = secret
         )
@@ -120,7 +120,7 @@ class DemoActivity : AppCompatActivity() {
 
                 val userID2 = "${"fueldemo".datetime()}@example.com"
                 val tokenInvalidating = withContext(Dispatchers.IO) {
-                    apiClient.getToken(AssuranceType.GENUINE_PRESENCE, com.iproov.androidapiclient.ClaimType.ENROL, userID2)
+                    apiClient.getToken(AssuranceType.GENUINE_PRESENCE, ClaimType.ENROL, userID2)
                 }
                 val invalidateResult = apiClient.invalidate(tokenInvalidating, "Test reason")
                 Log.i("Main", "success (Kotlin Fuel, invalidate) = $tokenInvalidating claimAborted=${invalidateResult.claimAborted} userInformed=${invalidateResult.userInformed}")

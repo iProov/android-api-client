@@ -1,14 +1,13 @@
 package com.iproov.androidapiclient.kotlinretrofit
 
 import okhttp3.MultipartBody;
-import kotlinx.coroutines.Deferred
 import okhttp3.RequestBody
 import retrofit2.http.*
 
 interface ApiService {
 
     @POST("claim/{claimType}/token")
-    suspend fun getAccessToken(@Path("claimType") claimType: String, @Body tokenRequest: TokenRequest): Token
+    suspend fun getAccessToken(@Path("claimType") claimType: String, @Body getTokenRequest: GetTokenRequest): GetTokenResponse
 
     @Multipart
     @POST("claim/enrol/image")
@@ -19,10 +18,10 @@ interface ApiService {
         @Part("token") token: RequestBody,
         @Part image: MultipartBody.Part,
         @Part("source") source: RequestBody
-    ): Token
+    ): PhotoEnrolResponse
 
-    @POST("claim/verify/validate")
-    suspend fun validate(@Body validationRequest: ValidationRequest): ValidationResult
+    @POST("claim/{claimType}/validate")
+    suspend fun validate(@Path("claimType") claimType: String, @Body validationRequest: ValidationRequest): ValidationResult
 
     @POST("claim/{token}/invalidate")
     suspend fun invalidate(@Path("token") token: String, @Body invalidationRequest: InvalidationRequest): InvalidationResult

@@ -6,25 +6,16 @@ import com.google.gson.JsonSerializationContext
 import com.google.gson.JsonSerializer
 import java.lang.reflect.Type
 
-class TokenRequestSerializer : JsonSerializer<TokenRequest> {
+class TokenRequestSerializer : JsonSerializer<GetTokenRequest> {
 
-    override fun serialize(src: TokenRequest?, typeOfSrc: Type?, context: JsonSerializationContext?): JsonElement {
-
-        val jsonObject = JsonObject().apply {
+    override fun serialize(src: GetTokenRequest?, typeOfSrc: Type?, context: JsonSerializationContext?): JsonElement =
+        JsonObject().apply {
             // TODO This isn't scalable but using context.serialize with src results in an infinite loop
             addProperty("api_key", src!!.apiKey)
             addProperty("secret", src.secret)
             addProperty("resource", src.resource)
-            addProperty("user_id", src.userId)
-            addProperty("client", src.client)
             addProperty("assurance_type", src.assuranceType)
+            addProperty("user_id", src.userId)
+            addProperty("riskProfile", src.riskProfile)
         }
-
-        src!!.options?.let {
-            context!!.serialize(it).asJsonObject.entrySet().forEach{ entry -> jsonObject.add(entry.key, entry.value) }
-        }
-
-        return jsonObject
-    }
-
 }

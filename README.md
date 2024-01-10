@@ -1,4 +1,4 @@
-# iProov Android API Client v2.0.1
+# iProov Android API Client v3.0.0
 
 ## 📖 Table of contents
 
@@ -83,7 +83,7 @@ private val uiScope = CoroutineScope(Dispatchers.Main + uiSupervisorJob)
 
 val apiClient = ApiClientRetrofit(
     context = this,
-    baseUrl = "https://eu.rp.secure.iproov.me/api/v2/",
+    baseUrl = "{{ your base url }}",
     logLevel = HttpLoggingInterceptor.Level.BODY,
     apiKey = "{{ your API key }}",
     secret = "{{ your API secret }}")
@@ -111,6 +111,7 @@ src/main/assets/ directory that looks like this:
 
 ~~~
 {
+  "base_url": <YOUR_URL>,
   "api_key": <YOUR_CLIENT_ID>,
   "secret": <YOUR_SECRET>
 }

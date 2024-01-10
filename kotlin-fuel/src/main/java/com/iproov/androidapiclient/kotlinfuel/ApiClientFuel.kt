@@ -15,6 +15,7 @@ import com.iproov.androidapiclient.ClaimType
 import com.iproov.androidapiclient.DemonstrationPurposesOnly
 import com.iproov.androidapiclient.PhotoSource
 import com.iproov.androidapiclient.merge
+import com.iproov.androidapiclient.saferUrl
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
@@ -46,10 +47,10 @@ class ApiClientFuel(
      * Obtain a token, given a ClaimType and userID
      */
     @Throws(FuelError::class)
-    suspend fun getToken(assuranceType: AssuranceType, type: ClaimType, userID: String, options: Map<String, Any>? = null, resource: String = appID): String =
+    suspend fun getToken(assuranceType: AssuranceType, type: ClaimType, userID: String, riskProfile: String? = null, extras: Map<String, Any>? = null, resource: String = appID): String =
 
         fuelInstance
-            .post("${baseUrl.safelUrl}claim/${type.toString().toLowerCase()}/token")
+            .post("${baseUrl.saferUrl}claim/${type.toString().toLowerCase()}/token")
             .header("Content-Type" to "application/json")
             .body(Gson().toJson(mapOf(
                 "api_key" to apiKey,
@@ -57,8 +58,9 @@ class ApiClientFuel(
                 "resource" to resource,
                 "client" to "android",
                 "user_id" to userID,
-                "assurance_type" to assuranceType.backendName
-            ).merge(options)))
+                "assurance_type" to assuranceType.backendName,
+                "riskProfile" to riskProfile
+            ).merge(extras)))
             .awaitObjectResult(jsonDeserializer())
             .let { response ->
                 when (response) {
@@ -74,7 +76,7 @@ class ApiClientFuel(
     suspend fun enrolPhoto(token: String, image: Bitmap, source: PhotoSource): String =
 
         fuelInstance
-            .upload("${baseUrl.safelUrl}claim/enrol/image", Method.POST, listOf(
+            .upload("${baseUrl.saferUrl}claim/enrol/image", Method.POST, listOf(
                 "api_key" to apiKey,
                 "secret" to secret,
                 "rotation" to "0",
@@ -96,16 +98,16 @@ class ApiClientFuel(
      * Validate given a token and userID
      */
     @Throws(FuelError::class)
-    suspend fun validate(token: String, userID: String): ValidationResult =
+    suspend fun validate(token: String, type: ClaimType, userID: String, riskProfile: String? = null): ValidationResult =
 
         fuelInstance
-            .post("${baseUrl.safelUrl}claim/verify/validate")
+            .post("${baseUrl.saferUrl}claim/${type.path}/validate")
             .body(Gson().toJson(mapOf(
                 "api_key" to apiKey,
                 "secret" to secret,
                 "user_id" to userID,
                 "token" to token,
-                "ip" to "127.0.0.1",
+                "risk_profile" to riskProfile,
                 "client" to "android"
             )))
             .awaitObjectResult(jsonDeserializer())
@@ -123,10 +125,8 @@ class ApiClientFuel(
     suspend fun invalidate(token: String, reason: String): InvalidationResult =
 
         fuelInstance
-            .post("${baseUrl.safelUrl}claim/$token/invalidate")
+            .post("${baseUrl.saferUrl}claim/$token/invalidate")
             .body(Gson().toJson(mapOf(
-//                "api_key" to apiKey,
-//                "secret" to secret,
                 "reason" to reason
             )))
             .awaitObjectResult(jsonDeserializer())
@@ -148,11 +148,11 @@ class ApiClientFuel(
  * - Get a verify token for the user ID
  */
 @DemonstrationPurposesOnly
-suspend fun ApiClientFuel.enrolPhotoAndGetVerifyToken(userID: String, image: Bitmap, assuranceType: AssuranceType, source: PhotoSource, options: Map<String, Any>? = null): String =
+suspend fun ApiClientFuel.enrolPhotoAndGetVerifyToken(userID: String, image: Bitmap, assuranceType: AssuranceType, source: PhotoSource, riskProfile: String? = null, options: Map<String, Any>? = null): String =
 
     getToken(assuranceType, ClaimType.ENROL, userID).let { token1 ->
         enrolPhoto(token1, image, source)
-        getToken(assuranceType, ClaimType.VERIFY, userID, options)
+        getToken(assuranceType, ClaimType.VERIFY, userID, riskProfile, options)
     }
 
 fun Bitmap.jpegImageStream(): InputStream =
@@ -171,8 +171,13 @@ fun JSONObject.toValidationResult(): ValidationResult =
     ValidationResult(
         this.getBoolean("passed"),
         this.getString("token"),
+        this.getString("type"),
+        this.getBoolean("frame_available"),
         this.getOrNullString("frame")?.base64DecodeBitmap(),
-        this.optJSONObject("result")?.getOrNullString("reason")
+        this.getOrNullString("reason"),
+        this.getOrNullString("risk_profile"),
+        this.getOrNullString("assurance_type"),
+        this.getJSONObject("signals")
     )
 
 /**
@@ -184,12 +189,6 @@ fun JSONObject.toInvalidationResult(): InvalidationResult =
         this.getBoolean("claim_aborted"),
         this.getBoolean("user_informed")
     )
-
-private inline val String.endingWithSlash: String
-    get() = if (endsWith("/")) this else "$this/"
-
-private inline val String.safelUrl: String
-    get() = if (endingWithSlash.endsWith("api/v2/")) endingWithSlash else "${endingWithSlash}api/v2/"
 
 /**
  * Base64 decode to Bitmap mapping

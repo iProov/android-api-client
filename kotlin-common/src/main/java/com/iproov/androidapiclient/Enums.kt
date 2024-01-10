@@ -1,7 +1,8 @@
 package com.iproov.androidapiclient
 
-enum class ClaimType {
-    ENROL, VERIFY
+enum class ClaimType(val path: String) {
+    ENROL("enrol"),
+    VERIFY("verify")
 }
 
 enum class PhotoSource(val code: String) {

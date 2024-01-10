@@ -2,11 +2,13 @@ package com.iproov.androidapiclient.kotlinretrofit
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.util.Log
 import com.google.gson.GsonBuilder
 import com.iproov.androidapiclient.AssuranceType
 import com.iproov.androidapiclient.ClaimType
 import com.iproov.androidapiclient.DemonstrationPurposesOnly
 import com.iproov.androidapiclient.PhotoSource
+import com.iproov.androidapiclient.saferUrl
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import retrofit2.Retrofit
@@ -42,14 +44,14 @@ class ApiClientRetrofit(
                     .readTimeout(30, TimeUnit.SECONDS)
                     .build()
             )
-            .baseUrl(baseUrl)
+            .baseUrl(baseUrl.saferUrl)
             .build()
             .create(ApiService::class.java)
     }
 
     private fun converterFactory() : GsonConverterFactory {
         val gson = GsonBuilder()
-            .registerTypeAdapter(TokenRequest::class.java, TokenRequestSerializer())
+            .registerTypeAdapter(GetTokenRequest::class.java, TokenRequestSerializer())
             .create()
 
         return GsonConverterFactory.create(gson)
@@ -61,18 +63,16 @@ class ApiClientRetrofit(
     /**
      * Obtain a token, given a ClaimType and userID
      */
-    suspend fun getToken(assuranceType: AssuranceType, type: ClaimType, userID: String, options: Map<String, Any>? = null, resource: String = appID): Token =
-
+    suspend fun getToken(assuranceType: AssuranceType, type: ClaimType, userID: String, riskProfile: String = "", resource: String = appID): GetTokenResponse =
         api.getAccessToken(
             type.toString().lowercase(),
-            TokenRequest(apiKey, secret, resource, userID, assuranceType = assuranceType.backendName, options = options)
+            GetTokenRequest(apiKey, secret, resource, assuranceType.backendName, userID, riskProfile)
         )
 
     /**
      * Enrol with a Photo, given a token and a PhotoSource
      */
-    suspend fun enrolPhoto(token: String, image: Bitmap, source: PhotoSource): Token =
-
+    suspend fun enrolPhoto(token: String, image: Bitmap, source: PhotoSource): PhotoEnrolResponse =
         api.enrolPhoto(
             apiKey.toMultipartRequestBody(),
             secret.toMultipartRequestBody(),
@@ -92,9 +92,17 @@ class ApiClientRetrofit(
     /**
      * Validate given a token and userID
      */
-    suspend fun validate(token: String, userID: String): ValidationResult =
-
-        api.validate(ValidationRequest(apiKey, secret, userID, token, "127.0.0.1", "android"))
+    suspend fun validate(token: String, claimType: ClaimType, userID: String, riskProfile: String = ""): ValidationResult =
+        api.validate(
+            claimType.path,
+            ValidationRequest(
+                apiKey,
+                secret,
+                userID,
+                token,
+                riskProfile
+            )
+        )
 
 
     /**
@@ -120,11 +128,11 @@ fun String.toMultipartRequestBody(): RequestBody =
  * - Get a verify token for the user ID
  */
 @DemonstrationPurposesOnly
-suspend fun ApiClientRetrofit.enrolPhotoAndGetVerifyToken(userID: String, image: Bitmap, source: PhotoSource, options: Map<String, Any>? = null): String =
+suspend fun ApiClientRetrofit.enrolPhotoAndGetVerifyToken(userID: String, image: Bitmap, source: PhotoSource, riskProfile: String = ""): String =
 
-    getToken(AssuranceType.GENUINE_PRESENCE, ClaimType.ENROL, userID).token.let { token1 ->
+    getToken(AssuranceType.GENUINE_PRESENCE, ClaimType.ENROL, userID, riskProfile).token.let { token1 ->
         enrolPhoto(token1, image, source).let {
-            getToken(AssuranceType.GENUINE_PRESENCE, ClaimType.VERIFY, userID, options).token
+            getToken(AssuranceType.GENUINE_PRESENCE, ClaimType.VERIFY, userID, riskProfile).token
         }
     }
 
